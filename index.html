@@ -417,6 +417,13 @@ function adaptarFormulario() {
                     csvContenido += `${pt.id},${pt.c1_orig_str},${pt.c2_orig_str},,,RECHAZADO_${pt.error}\n`;
                 }
             });
+            
+            // Obtener el año actual de forma automática
+            const anioActual = new Date().getFullYear();
+
+            // Agregar línea intermedia en blanco y pie de página oficial con el año dinámico
+            csvContenido += "\n";
+            csvContenido += `https://arg-geo.github.io/conversor-gtm-utm/   Todos los derechos reservados (${anioActual})\n`;
 
             // Generar nombre dinámico estricto: SistemaDestino_Zona_Año_Mes_Día_Timestamp.csv
             const ahora = new Date();
