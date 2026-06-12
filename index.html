@@ -8,17 +8,50 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans relative">
+
+    <div id="modalAviso" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden transform transition-all scale-100">
+            <div class="bg-blue-900 p-4 text-white flex items-center justify-between">
+                <h3 class="font-bold text-sm tracking-wide uppercase">⚡ Aviso de Sincronización Inicial</h3>
+                <button onclick="cerrarModal()" class="text-blue-200 hover:text-white font-bold text-lg">&times;</button>
+            </div>
+            <div class="p-5 space-y-3">
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    Estimado usuario, debido a las políticas de ahorro de energía del servidor, la <strong>primera transformación</strong> del día puede demorar entre 30 y 60 segundos mientras se levantan las matrices geodésicas.
+                </p>
+                <p class="text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200 font-medium">
+                    ⚠️ Una vez realizada la primera operación, todas las consultas siguientes se procesarán de forma instantánea y en milisegundos.
+                </p>
+            </div>
+            <div class="bg-slate-50 p-3 px-5 flex justify-end border-t border-slate-100">
+                <button onclick="cerrarModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs px-4 py-2 rounded-lg shadow uppercase tracking-wider">
+                    Entendido, Continuar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <header class="bg-blue-900 text-white shadow-md p-5 text-center">
         <h1 class="text-xl font-bold tracking-tight">Conversor Geodésico Territorial</h1>
-        <p class="text-xs text-blue-200 mt-1 font-medium">Fase 2: Control Simétrico de Cobertura Cartográfica Nacional</p>
+        <p class="text-xs text-blue-200 mt-1 font-medium">Fase 3: Módulo de Automatización y Procesamiento Masivo por Lotes</p>
     </header>
+
+    <nav class="max-w-6xl mx-auto mt-6 px-4 md:px-6">
+        <div class="flex border-b border-slate-300 space-x-2">
+            <button id="btnTabInd" onclick="cambiarPestaña('individual')" class="py-2 px-4 text-sm font-bold border-b-2 border-blue-700 text-blue-700">
+                Transformación Individual
+            </button>
+            <button id="btnTabLote" onclick="cambiarPestaña('lote')" class="py-2 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+                Procesamiento Masivo (.CSV)
+            </button>
+        </div>
+    </nav>
 
     <main class="max-w-6xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <section class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200 md:col-span-1 h-fit space-y-4">
-            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2">Configuración</h2>
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2">Configuración Geodésica</h2>
             
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Sistema de Origen</label>
@@ -32,7 +65,7 @@
             </div>
 
             <div id="wrapperZonaOrigen" class="hidden bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                <label class="block text-xs font-semibold text-amber-800 mb-1">Zona UTM de Origen</label>
+                <label class="block text-xs font-semibold text-amber-800 mb-1">Zona UTM de Origen (Aplica a todo el lote)</label>
                 <select id="valZonaOrigen" class="w-full bg-white border border-amber-300 rounded-md p-1.5 text-xs font-medium">
                     <option value="15">Zona 15 Norte (Occidente)</option>
                     <option value="16">Zona 16 Norte (Oriente)</option>
@@ -51,7 +84,7 @@
             </div>
 
             <div id="wrapperZonaDestino" class="hidden bg-blue-50 p-2.5 rounded-lg border border-blue-200">
-                <label class="block text-xs font-semibold text-blue-800 mb-1">Zona UTM de Destino</label>
+                <label class="block text-xs font-semibold text-blue-800 mb-1">Zona UTM de Destino (Aplica a todo el lote)</label>
                 <select id="valZonaDestino" class="w-full bg-white border border-blue-300 rounded-md p-1.5 text-xs font-medium">
                     <option value="15">Zona 15 Norte (Occidente a -89.5°)</option>
                     <option value="16">Zona 16 Norte (Oriente desde -90.5°)</option>
@@ -60,27 +93,62 @@
 
             <hr class="border-slate-200" />
 
-            <div>
-                <label id="lblC1" class="block text-xs font-semibold text-slate-500 mb-1">Longitud / Este (X)</label>
-                <input type="text" id="valC1" oninput="escucharEntradaDinamica()" placeholder="-92.5" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500">
-                <span id="previewGmsC1" class="hidden block text-[11px] font-mono text-blue-700 mt-1 bg-blue-50 p-1 px-2 rounded border border-blue-100"></span>
+            <div id="panelIndividual" class="space-y-4">
+                <div>
+                    <label id="lblC1" class="block text-xs font-semibold text-slate-500 mb-1">Longitud / Este (X)</label>
+                    <input type="text" id="valC1" oninput="escucharEntradaDinamica()" placeholder="-92.5" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500">
+                    <span id="previewGmsC1" class="hidden block text-[11px] font-mono text-blue-700 mt-1 bg-blue-50 p-1 px-2 rounded border border-blue-100"></span>
+                </div>
+                <div>
+                    <label id="lblC2" class="block text-xs font-semibold text-slate-500 mb-1">Latitud / Norte (Y)</label>
+                    <input type="text" id="valC2" oninput="escucharEntradaDinamica()" placeholder="15.0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500">
+                    <span id="previewGmsC2" class="hidden block text-[11px] font-mono text-blue-700 mt-1 bg-blue-50 p-1 px-2 rounded border border-blue-100"></span>
+                </div>
+                <button onclick="ejecutarTransformacion()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm p-3 rounded-xl shadow-md uppercase tracking-wider">
+                    Transformar Coordenada
+                </button>
             </div>
 
-            <div>
-                <label id="lblC2" class="block text-xs font-semibold text-slate-500 mb-1">Latitud / Norte (Y)</label>
-                <input type="text" id="valC2" oninput="escucharEntradaDinamica()" placeholder="15.0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500">
-                <span id="previewGmsC2" class="hidden block text-[11px] font-mono text-blue-700 mt-1 bg-blue-50 p-1 px-2 rounded border border-blue-100"></span>
+            <div id="panelLote" class="hidden space-y-4">
+                <div class="bg-slate-50 p-3 rounded-xl border border-dashed border-slate-300 text-center">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Cargar Archivo .CSV</label>
+                    <input type="file" id="fileCsv" accept=".csv" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 file:cursor-pointer hover:file:bg-blue-100" />
+                    <p class="text-[10px] text-slate-400 mt-2">Columnas requeridas: <code class="bg-slate-200 px-1 rounded">c1</code>, <code class="bg-slate-200 px-1 rounded">c2</code>. Máximo 25 puntos por archivo.</p>
+                </div>
+                <button onclick="ejecutarProcesamientoLote()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm p-3 rounded-xl shadow-md uppercase tracking-wider">
+                    Procesar Lote Masivo
+                </button>
             </div>
-
-            <button onclick="ejecutarTransformacion()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm p-3 rounded-xl shadow-md uppercase tracking-wider">
-                Transformar Coordenada
-            </button>
         </section>
 
         <section class="md:col-span-2 space-y-6">
             <div id="boxResultados" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Módulo de Salida</h3>
                 <div id="contenedorResultados" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            </div>
+
+            <div id="boxResultadosLote" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b pb-2">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Resultados del Procesamiento Masivo</h3>
+                    <button onclick="descargarReporteCsv()" class="bg-blue-800 hover:bg-blue-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center space-x-1 shadow">
+                        <span>📥 Descargar Reporte Transformado</span>
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-60 rounded-xl border border-slate-200">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-100 font-bold border-b border-slate-200 text-slate-600">
+                            <tr>
+                                <th class="p-2 text-center">Fila</th>
+                                <th class="p-2">Entrada C1 (X)</th>
+                                <th class="p-2">Entrada C2 (Y)</th>
+                                <th class="p-2">Resultado C1 (X)</th>
+                                <th class="p-2">Resultado C2 (Y)</th>
+                                <th class="p-2 text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaLoteCuerpo" class="divide-y divide-slate-100 font-mono"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="boxMapa" class="hidden bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
@@ -92,8 +160,35 @@
 
     <script>
         const API_URL = "https://test-backend-zs4u.onrender.com/api";
-        let mapa = null;
-        let marcador = null;
+        let mapa = null; let marcador = null;
+        let activeTab = 'individual';
+        let datosUltimoLoteProcesado = null; // Guardar caché para descarga diferida
+
+        function cerrarModal() { document.getElementById('modalAviso').classList.add('hidden'); }
+
+        function cambiarPestaña(tab) {
+            activeTab = tab;
+            const btnInd = document.getElementById('btnTabInd');
+            const btnLote = document.getElementById('btnTabLote');
+            const pInd = document.getElementById('panelIndividual');
+            const pLote = document.getElementById('panelLote');
+
+            // Limpieza y reseteo de ventanas
+            document.getElementById('boxResultados').classList.add('hidden');
+            document.getElementById('boxResultadosLote').classList.add('hidden');
+            document.getElementById('boxMapa').classList.add('hidden');
+            if (mapa) { mapa.remove(); mapa = null; marcador = null; }
+
+            if (tab === 'individual') {
+                btnInd.className = "py-2 px-4 text-sm font-bold border-b-2 border-blue-700 text-blue-700";
+                btnLote.className = "py-2 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800";
+                pInd.classList.remove('hidden'); pLote.classList.add('hidden');
+            } else {
+                btnLote.className = "py-2 px-4 text-sm font-bold border-b-2 border-blue-700 text-blue-700";
+                btnInd.className = "py-2 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800";
+                pLote.classList.remove('hidden'); pInd.classList.add('hidden');
+            }
+        }
 
         function adaptarFormulario() {
             const desde = document.getElementById('srcDesde').value;
@@ -102,47 +197,33 @@
             document.getElementById('previewGmsC1').classList.add('hidden');
             document.getElementById('previewGmsC2').classList.add('hidden');
 
-            // Ajuste de Etiquetas de entrada
             if (desde === 'WGS84_DEC') {
                 document.getElementById('lblC1').innerText = "Longitud (Grados Decimales)";
                 document.getElementById('lblC2').innerText = "Latitud (Grados Decimales)";
-                document.getElementById('valC1').placeholder = "-92.5";
-                document.getElementById('valC2').placeholder = "15.0";
+                document.getElementById('valC1').placeholder = "-92.5"; document.getElementById('valC2').placeholder = "15.0";
             } else if (desde === 'WGS84_GMS') {
                 document.getElementById('lblC1').innerText = "Longitud GMS (Ej: -90 30 30)";
                 document.getElementById('lblC2').innerText = "Latitud GMS (Ej: 15 30 30)";
-                document.getElementById('valC1').placeholder = "-90 30 30";
-                document.getElementById('valC2').placeholder = "15 30 30";
+                document.getElementById('valC1').placeholder = "-90 30 30"; document.getElementById('valC2').placeholder = "15 30 30";
             } else {
                 document.getElementById('lblC1').innerText = `${desde} Coordenada Este - X (m)`;
                 document.getElementById('lblC2').innerText = `${desde} Coordenada Norte - Y (m)`;
-                document.getElementById('valC1').placeholder = "500000.000";
-                document.getElementById('valC2').placeholder = "1600000.000";
+                document.getElementById('valC1').placeholder = "500000.000"; document.getElementById('valC2').placeholder = "1600000.000";
             }
 
-            // Visibilidad de selectores de zona UTM
-            if (desde === 'UTM_WGS84' || desde === 'UTM_NAD27') {
-                document.getElementById('wrapperZonaOrigen').classList.remove('hidden');
-            } else {
-                document.getElementById('wrapperZonaOrigen').classList.add('hidden');
-            }
+            if (desde === 'UTM_WGS84' || desde === 'UTM_NAD27') document.getElementById('wrapperZonaOrigen').classList.remove('hidden');
+            else document.getElementById('wrapperZonaOrigen').classList.add('hidden');
 
-            if (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') {
-                document.getElementById('wrapperZonaDestino').classList.remove('hidden');
-            } else {
-                document.getElementById('wrapperZonaDestino').classList.add('hidden');
-            }
+            if (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') document.getElementById('wrapperZonaDestino').classList.remove('hidden');
+            else document.getElementById('wrapperZonaDestino').classList.add('hidden');
 
             escucharEntradaDinamica();
         }
 
         function limpiarYParsearGMS(str) {
-            let s = str.trim().replace(/,/g, '.');
-            if (!s) return NaN;
-            let partes = s.split(/\s+/);
-            if (partes.length === 0) return NaN;
-            let d = parseFloat(partes[0]);
-            if (isNaN(d)) return NaN;
+            let s = str.trim().replace(/,/g, '.'); if (!s) return NaN;
+            let partes = s.split(/\s+/); if (partes.length === 0) return NaN;
+            let d = parseFloat(partes[0]); if (isNaN(d)) return NaN;
             let m = partes.length > 1 ? parseFloat(partes[1]) : 0;
             let seg = partes.length > 2 ? parseFloat(partes[2]) : 0;
             if (isNaN(m) || isNaN(seg)) return NaN;
@@ -151,49 +232,33 @@
         }
 
         function convertirDecimalAGMS(val, esLongitud) {
-            let n = parseFloat(val);
-            if (isNaN(n)) return "";
-            let signo = n < 0 ? "-" : "";
-            let absVal = Math.abs(n);
-            let d = Math.floor(absVal);
-            let remMin = (absVal - d) * 60;
-            let m = Math.floor(remMin);
+            let n = parseFloat(val); if (isNaN(n)) return "";
+            let signo = n < 0 ? "-" : ""; let absVal = Math.abs(n);
+            let d = Math.floor(absVal); let remMin = (absVal - d) * 60; let m = Math.floor(remMin);
             let s = ((remMin - m) * 60).toFixed(2);
             if (parseFloat(s) >= 60) { s = (0).toFixed(2); m += 1; if (m >= 60) { m = 0; d += 1; } }
             return ` Equivalente: ${signo}${d}° ${m}' ${s}" ${esLongitud ? "W" : "N"}`;
         }
 
         function escucharEntradaDinamica() {
+            if (activeTab !== 'individual') return;
             const desde = document.getElementById('srcDesde').value;
             const c1_raw = document.getElementById('valC1').value.trim();
             const c2_raw = document.getElementById('valC2').value.trim();
-            const p1 = document.getElementById('previewGmsC1');
-            const p2 = document.getElementById('previewGmsC2');
+            const p1 = document.getElementById('previewGmsC1'); const p2 = document.getElementById('previewGmsC2');
 
             if (desde === 'WGS84_DEC') {
-                if (c1_raw && !isNaN(parseFloat(c1_raw))) {
-                    p1.innerText = convertirDecimalAGMS(c1_raw, true); p1.classList.remove('hidden');
-                } else p1.classList.add('hidden');
-                if (c2_raw && !isNaN(parseFloat(c2_raw))) {
-                    p2.innerText = convertirDecimalAGMS(c2_raw, false); p2.classList.remove('hidden');
-                } else p2.classList.add('hidden');
+                if (c1_raw && !isNaN(parseFloat(c1_raw))) { p1.innerText = convertirDecimalAGMS(c1_raw, true); p1.classList.remove('hidden'); } else p1.classList.add('hidden');
+                if (c2_raw && !isNaN(parseFloat(c2_raw))) { p2.innerText = convertirDecimalAGMS(c2_raw, false); p2.classList.remove('hidden'); } else p2.classList.add('hidden');
             } else if (desde === 'WGS84_GMS') {
                 let dec1 = limpiarYParsearGMS(c1_raw);
-                if (c1_raw && !isNaN(dec1)) {
-                    p1.innerText = ` Equivalente Decimal: ${dec1.toFixed(8)}°`; p1.classList.remove('hidden');
-                } else p1.classList.add('hidden');
+                if (c1_raw && !isNaN(dec1)) { p1.innerText = ` Equivalente Decimal: ${dec1.toFixed(8)}°`; p1.classList.remove('hidden'); } else p1.classList.add('hidden');
                 let dec2 = limpiarYParsearGMS(c2_raw);
-                if (c2_raw && !isNaN(dec2)) {
-                    p2.innerText = ` Equivalente Decimal: ${dec2.toFixed(8)}°`; p2.classList.remove('hidden');
-                } else p2.classList.add('hidden');
-            } else {
-                p1.classList.add('hidden'); p2.classList.add('hidden');
-            }
+                if (c2_raw && !isNaN(dec2)) { p2.innerText = ` Equivalente Decimal: ${dec2.toFixed(8)}°`; p2.classList.remove('hidden'); } else p2.classList.add('hidden');
+            } else { p1.classList.add('hidden'); p2.classList.add('hidden'); }
         }
 
-        function formatearMiles(val) {
-            return new Intl.NumberFormat('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(val);
-        }
+        function formatearMiles(val) { return new Intl.NumberFormat('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(val); }
 
         function levantarMapa(lat, lon) {
             document.getElementById('boxMapa').classList.remove('hidden');
@@ -206,8 +271,161 @@
             setTimeout(() => { mapa.invalidateSize(); }, 200);
         }
 
-        async function ejecutarTransformacion() {
+        // CONTROL PROCESAMIENTO MASIVO PARSER INTERNO .CSV
+        function parsearCSV(texto) {
+            const lineas = texto.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+            if (lineas.length < 2) return [];
+
+            // Identificar encabezados mapeando minúsculas
+            const encabezados = lineas[0].split(',').map(h => h.trim().toLowerCase());
+            const idxC1 = encabezados.indexOf('c1');
+            const idxC2 = encabezados.indexOf('c2');
+
+            if (idxC1 === -1 || idxC2 === -1) {
+                alert("El archivo .CSV debe contener las columnas 'c1' y 'c2' en el encabezado.");
+                return [];
+            }
+
+            const puntos = [];
+            for (let i = 1; i < lineas.length; i++) {
+                const columnas = lineas[i].split(',');
+                if (columnas.length <= Math.max(idxC1, idxC2)) continue;
+                puntos.push({
+                    id: i,
+                    c1_raw: columnas[idxC1].trim(),
+                    c2_raw: columnas[idxC2].trim()
+                });
+            }
+            return puntos;
+        }
+
+        async function ejecutarProcesamientoLote() {
+            const archivoInput = document.getElementById('fileCsv');
+            if (archivoInput.files.length === 0) { alert("Por favor seleccione un archivo .csv primero."); return; }
+
             const desde = document.getElementById('srcDesde').value;
+            const hasta = document.getElementById('srcHasta').value;
+            const zonaOrigen = document.getElementById('valZonaOrigen').value;
+            const zonaDestino = document.getElementById('valZonaDestino').value;
+
+            const archivo = archivoInput.files[0];
+            const lector = new FileReader();
+
+            lector.onload = async function(e) {
+                const puntosRaw = parsearCSV(e.target.result);
+                if (puntosRaw.length === 0) return;
+
+                if (puntosRaw.length > 25) {
+                    alert(`El archivo contiene ${puntosRaw.length} puntos. El límite máximo permitido para no sobrecargar el servidor es de 25 puntos.`);
+                    return;
+                }
+
+                // Normalizar/Parsear el formato en el cliente si es GMS antes de enviar al lote
+                const puntosProcesados = puntosRaw.map(p => {
+                    let c1 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c1_raw) : parseFloat(p.c1_raw);
+                    let c2 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c2_raw) : parseFloat(p.c2_raw);
+                    return { id: p.id, c1, c2, c1_orig_str: p.c1_raw, c2_orig_str: p.c2_raw };
+                });
+
+                const boxResLote = document.getElementById('boxResultadosLote');
+                const tbody = document.getElementById('tablaLoteCuerpo');
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center italic text-slate-500 animate-pulse">Procesando ráfaga masiva en el servidor geodésico...</td></tr>`;
+                boxResLote.classList.remove('hidden');
+
+                try {
+                    const response = await fetch(`${API_URL}/convertir-lote`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ puntos: puntosProcesados, desde, hasta, zonaOrigen, zonaDestino })
+                    });
+
+                    const r = await response.json();
+                    if (!r.exito) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">⚠️ Error en bloque: ${r.error}</td></tr>`;
+                        return;
+                    }
+
+                    // Cruzar arrays para pintar resultados limpios en pantalla
+                    datosUltimoLoteProcesado = r.resultados.map((res, i) => {
+                        return {
+                            ...res,
+                            c1_orig_str: puntosProcesados[i].c1_orig_str,
+                            c2_orig_str: puntosProcesados[i].c2_orig_str
+                        };
+                    });
+
+                    tbody.innerHTML = "";
+                    datosUltimoLoteProcesado.forEach(pt => {
+                        let colC1 = "-", colC2 = "-", badge = "";
+                        if (pt.exito) {
+                            colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : formatearMiles(pt.c1);
+                            colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : formatearMiles(pt.c2);
+                            badge = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">ÉXITO</span>`;
+                        } else {
+                            badge = `<span class="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded text-[10px]" title="${pt.error}">RECHAZADO</span>`;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-2 text-center text-slate-400 font-bold border-r">${pt.id}</td>
+                                <td class="p-2 text-slate-600">${pt.c1_orig_str}</td>
+                                <td class="p-2 text-slate-600">${pt.c2_orig_str}</td>
+                                <td class="p-2 font-bold text-slate-900">${colC1}</td>
+                                <td class="p-2 font-bold text-slate-900">${colC2}</td>
+                                <td class="p-2 text-center">${badge}</td>
+                            </tr>`;
+                    });
+
+                } catch (err) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">Fallo crítico de enlace con el API.</td></tr>`;
+                }
+            };
+
+            lector.readAsText(archivo);
+        }
+
+        function descargarReporteCsv() {
+            if (!datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) return;
+
+            const hasta = document.getElementById('srcHasta').value;
+            const zonaDestino = document.getElementById('valZonaDestino').value;
+
+            // Construir contenido del .CSV
+            let csvContenido = "id,c1_origen,c2_origen,c1_destino,c2_destino,estado_validacion\n";
+            datosUltimoLoteProcesado.forEach(pt => {
+                if (pt.exito) {
+                    csvContenido += `${pt.id},"${pt.c1_orig_str}","${pt.c2_orig_str}",${pt.c1},${pt.c2},APROBADO\n`;
+                } else {
+                    csvContenido += `${pt.id},"${pt.c1_orig_str}","${pt.c2_orig_str}",,,RECHAZADO_${pt.error}\n`;
+                }
+            });
+
+            // Generar nombre dinámico estricto: SistemaDestino_Zona_Año_Mes_Día_Timestamp.csv
+            const ahora = new Date();
+            const yyyy = ahora.getFullYear();
+            const mm = String(ahora.getMonth() + 1).padStart(2, '0');
+            const dd = String(ahora.getDate()).padStart(2, '0');
+            const ts = ahora.getTime();
+
+            let txtZona = (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') ? `_Z${zonaDestino}` : "";
+            let nombreArchivo = `${hasta}${txtZona}_${yyyy}_${mm}_${dd}_${ts}.csv`;
+
+            // Trigger descarga web
+            const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", nombreArchivo);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        async function ejecutarTransformacion() {
+            let desde = document.getElementById('srcDesde').value;
             const hasta = document.getElementById('srcHasta').value;
             const c1_raw = document.getElementById('valC1').value.trim();
             const c2_raw = document.getElementById('valC2').value.trim();
@@ -216,7 +434,6 @@
 
             if (!c1_raw || !c2_raw) { alert("Complete los campos numéricos."); return; }
 
-            // CIERRE INMEDIATO VIRTUAL DEL MAPA RESIDUAL
             document.getElementById('boxResultados').classList.add('hidden');
             document.getElementById('boxMapa').classList.add('hidden');
             if (mapa) { mapa.remove(); mapa = null; marcador = null; }
