@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es-GT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Geodésico Nacional - Guatemala</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+
+    <header class="bg-blue-900 text-white shadow-md p-5 text-center">
+        <h1 class="text-xl font-bold tracking-tight">Conversor Geodésico Territorial</h1>
+        <p class="text-xs text-blue-200 mt-1 font-medium">Fase 2: Control Simétrico de Cobertura Cartográfica Nacional</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <section class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200 md:col-span-1 h-fit space-y-4">
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2">Configuración</h2>
+            
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Sistema de Origen</label>
+                <select id="srcDesde" onchange="adaptarFormulario()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="WGS84_DEC">WGS84 - Grados Decimales</option>
+                    <option value="WGS84_GMS">WGS84 - Grados, Minutos, Segundos (GMS)</option>
+                    <option value="GTM">GTM (Guatemala Transverse Mercator)</option>
+                    <option value="UTM_WGS84">UTM WGS84</option>
+                    <option value="UTM_NAD27">UTM NAD27 (Clarke 1866)</option>
+                </select>
+            </div>
+
+            <div id="wrapperZonaOrigen" class="hidden bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                <label class="block text-xs font-semibold text-amber-800 mb-1">Zona UTM de Origen</label>
+                <select id="valZonaOrigen" class="w-full bg-white border border-amber-300 rounded-md p-1.5 text-xs font-medium">
+                    <option value="15">Zona 15 Norte (Occidente)</option>
+                    <option value="16">Zona 16 Norte (Oriente)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Sistema de Destino</label>
+                <select id="srcHasta" onchange="adaptarFormulario()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="GTM">GTM (Guatemala Transverse Mercator)</option>
+                    <option value="UTM_WGS84">UTM WGS84</option>
+                    <option value="UTM_NAD27">UTM NAD27 (Clarke 1866)</option>
+                    <option value="WGS84_DEC">WGS84 - Grados Decimales</option>
+                    <option value="WGS84_GMS">WGS84 - Grados, Minutos, Segundos (GMS)</option>
+                </select>
+            </div>
+
+            <div id="wrapperZonaDestino" class="hidden bg-blue-50 p-2.5 rounded-lg border border-blue-200">
+                <label class="block text-xs font-semibold text-blue-800 mb-1">Zona UTM de Destino</label>
+                <select id="valZonaDestino" class="w-full bg-white border border-blue-300 rounded-md p-1.5 text-xs font-medium">
+                    <option value="15">Zona 15 Norte (Occidente a -89.5°)</option>
+                    <option value="16">Zona 16 Norte (Oriente desde -90.5°)</option>
+                </select>
+            </div>
+
+            <hr class="border-slate-200" />
+
+            <div>
+                <label id="lblC1" class="block text-xs font-semibold text-slate-500 mb-1">Longitud / Este (X)</label>
+                <input type="text" id="valC1" oninput="escucharEntradaDinamica()" placeholder="-92.5" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500">
+                <span id="previewGmsC1" class="hidden block text-[11px] font-mono text-blue-700 mt-1 bg-blue-50 p-1 px-2 rounded border border-blue-100"></span>
+            </div>
+
+            <div>
+                <label id="lblC2" class="block text-xs font-semibold text-slate-500 mb-1">Latitud / Norte (Y)</label>
+                <input type="text" id="valC2" oninput="escucharEntradaDinamica()" placeholder="15.0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500">
+                <span id="previewGmsC2" class="hidden block text-[11px] font-mono text-blue-700 mt-1 bg-blue-50 p-1 px-2 rounded border border-blue-100"></span>
+            </div>
+
+            <button onclick="ejecutarTransformacion()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm p-3 rounded-xl shadow-md uppercase tracking-wider">
+                Transformar Coordenada
+            </button>
+        </section>
+
+        <section class="md:col-span-2 space-y-6">
+            <div id="boxResultados" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Módulo de Salida</h3>
+                <div id="contenedorResultados" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            </div>
+
+            <div id="boxMapa" class="hidden bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Visor Geográfico Controlado</h3>
+                <div id="mapa" class="w-full h-80 bg-slate-200 rounded-xl border border-slate-300"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_URL = "https://conversor-gtm-backend-1.onrender.com/api";
+        let mapa = null;
+        let marcador = null;
+
+        function adaptarFormulario() {
+            const desde = document.getElementById('srcDesde').value;
+            const hasta = document.getElementById('srcHasta').value;
+
+            document.getElementById('previewGmsC1').classList.add('hidden');
+            document.getElementById('previewGmsC2').classList.add('hidden');
+
+            // Ajuste de Etiquetas de entrada
+            if (desde === 'WGS84_DEC') {
+                document.getElementById('lblC1').innerText = "Longitud (Grados Decimales)";
+                document.getElementById('lblC2').innerText = "Latitud (Grados Decimales)";
+                document.getElementById('valC1').placeholder = "-92.5";
+                document.getElementById('valC2').placeholder = "15.0";
+            } else if (desde === 'WGS84_GMS') {
+                document.getElementById('lblC1').innerText = "Longitud GMS (Ej: -90 30 30)";
+                document.getElementById('lblC2').innerText = "Latitud GMS (Ej: 15 30 30)";
+                document.getElementById('valC1').placeholder = "-90 30 30";
+                document.getElementById('valC2').placeholder = "15 30 30";
+            } else {
+                document.getElementById('lblC1').innerText = `${desde} Coordenada Este - X (m)`;
+                document.getElementById('lblC2').innerText = `${desde} Coordenada Norte - Y (m)`;
+                document.getElementById('valC1').placeholder = "500000.000";
+                document.getElementById('valC2').placeholder = "1600000.000";
+            }
+
+            // Visibilidad de selectores de zona UTM
+            if (desde === 'UTM_WGS84' || desde === 'UTM_NAD27') {
+                document.getElementById('wrapperZonaOrigen').classList.remove('hidden');
+            } else {
+                document.getElementById('wrapperZonaOrigen').classList.add('hidden');
+            }
+
+            if (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') {
+                document.getElementById('wrapperZonaDestino').classList.remove('hidden');
+            } else {
+                document.getElementById('wrapperZonaDestino').classList.add('hidden');
+            }
+
+            escucharEntradaDinamica();
+        }
+
+        function limpiarYParsearGMS(str) {
+            let s = str.trim().replace(/,/g, '.');
+            if (!s) return NaN;
+            let partes = s.split(/\s+/);
+            if (partes.length === 0) return NaN;
+            let d = parseFloat(partes[0]);
+            if (isNaN(d)) return NaN;
+            let m = partes.length > 1 ? parseFloat(partes[1]) : 0;
+            let seg = partes.length > 2 ? parseFloat(partes[2]) : 0;
+            if (isNaN(m) || isNaN(seg)) return NaN;
+            let absVal = Math.abs(d) + (m / 60) + (seg / 3600);
+            return d < 0 ? (absVal * -1) : absVal;
+        }
+
+        function convertirDecimalAGMS(val, esLongitud) {
+            let n = parseFloat(val);
+            if (isNaN(n)) return "";
+            let signo = n < 0 ? "-" : "";
+            let absVal = Math.abs(n);
+            let d = Math.floor(absVal);
+            let remMin = (absVal - d) * 60;
+            let m = Math.floor(remMin);
+            let s = ((remMin - m) * 60).toFixed(2);
+            if (parseFloat(s) >= 60) { s = (0).toFixed(2); m += 1; if (m >= 60) { m = 0; d += 1; } }
+            return ` Equivalente: ${signo}${d}° ${m}' ${s}" ${esLongitud ? "W" : "N"}`;
+        }
+
+        function escucharEntradaDinamica() {
+            const desde = document.getElementById('srcDesde').value;
+            const c1_raw = document.getElementById('valC1').value.trim();
+            const c2_raw = document.getElementById('valC2').value.trim();
+            const p1 = document.getElementById('previewGmsC1');
+            const p2 = document.getElementById('previewGmsC2');
+
+            if (desde === 'WGS84_DEC') {
+                if (c1_raw && !isNaN(parseFloat(c1_raw))) {
+                    p1.innerText = convertirDecimalAGMS(c1_raw, true); p1.classList.remove('hidden');
+                } else p1.classList.add('hidden');
+                if (c2_raw && !isNaN(parseFloat(c2_raw))) {
+                    p2.innerText = convertirDecimalAGMS(c2_raw, false); p2.classList.remove('hidden');
+                } else p2.classList.add('hidden');
+            } else if (desde === 'WGS84_GMS') {
+                let dec1 = limpiarYParsearGMS(c1_raw);
+                if (c1_raw && !isNaN(dec1)) {
+                    p1.innerText = ` Equivalente Decimal: ${dec1.toFixed(8)}°`; p1.classList.remove('hidden');
+                } else p1.classList.add('hidden');
+                let dec2 = limpiarYParsearGMS(c2_raw);
+                if (c2_raw && !isNaN(dec2)) {
+                    p2.innerText = ` Equivalente Decimal: ${dec2.toFixed(8)}°`; p2.classList.remove('hidden');
+                } else p2.classList.add('hidden');
+            } else {
+                p1.classList.add('hidden'); p2.classList.add('hidden');
+            }
+        }
+
+        function formatearMiles(val) {
+            return new Intl.NumberFormat('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(val);
+        }
+
+        function levantarMapa(lat, lon) {
+            document.getElementById('boxMapa').classList.remove('hidden');
+            if (!mapa) {
+                mapa = L.map('mapa').setView([lat, lon], 8);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapa);
+            } else { mapa.setView([lat, lon], 8); }
+            if (marcador) mapa.removeLayer(marcador);
+            marcador = L.marker([lat, lon]).addTo(mapa);
+            setTimeout(() => { mapa.invalidateSize(); }, 200);
+        }
+
+        async function ejecutarTransformacion() {
+            const desde = document.getElementById('srcDesde').value;
+            const hasta = document.getElementById('srcHasta').value;
+            const c1_raw = document.getElementById('valC1').value.trim();
+            const c2_raw = document.getElementById('valC2').value.trim();
+            const zonaOrigen = document.getElementById('valZonaOrigen').value;
+            const zonaDestino = document.getElementById('valZonaDestino').value;
+
+            if (!c1_raw || !c2_raw) { alert("Complete los campos numéricos."); return; }
+
+            // CIERRE INMEDIATO VIRTUAL DEL MAPA RESIDUAL
+            document.getElementById('boxResultados').classList.add('hidden');
+            document.getElementById('boxMapa').classList.add('hidden');
+            if (mapa) { mapa.remove(); mapa = null; marcador = null; }
+
+            let c1 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(c1_raw) : parseFloat(c1_raw);
+            let c2 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(c2_raw) : parseFloat(c2_raw);
+
+            const boxRes = document.getElementById('boxResultados');
+            const container = document.getElementById('contenedorResultados');
+
+            if (isNaN(c1) || isNaN(c2)) {
+                container.innerHTML = `<div class="col-span-2 text-center text-red-700 font-bold text-sm">⚠️ Error en consistencia de datos de entrada.</div>`;
+                boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
+                boxRes.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                container.innerHTML = "<p class='col-span-2 text-center text-sm italic text-slate-500 animate-pulse font-medium'>Calculando y verificando coberturas espaciales...</p>";
+                boxRes.className = "bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm";
+                boxRes.classList.remove('hidden');
+
+                const response = await fetch(`${API_URL}/convertir-individual`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ c1, c2, desde, hasta, zonaOrigen, zonaDestino })
+                });
+
+                const r = await response.json();
+
+                if (!r.exito) {
+                    container.innerHTML = `
+                        <div class="col-span-2 text-center p-2">
+                            <p class="text-red-700 font-bold text-sm">⚠️ Coordenada Fuera de Límites Nacionales</p>
+                            <p class="text-slate-600 text-xs mt-1 max-w-md mx-auto">La proyección geográfica resultante excede los límites legales de Guatemala o no se corresponde con la cobertura de la zona UTM destino solicitada.</p>
+                        </div>`;
+                    boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
+                    return;
+                }
+
+                const out = r.datos;
+                boxRes.className = "bg-white border border-slate-200 rounded-2xl p-5 shadow-sm";
+
+                if (hasta === 'WGS84_DEC') {
+                    container.innerHTML = `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Longitud Decimal</span>
+                            <span class="text-slate-900 block font-mono font-bold text-base mt-0.5">${parseFloat(out.c1).toFixed(8)}°</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Latitud Decimal</span>
+                            <span class="text-slate-900 block font-mono font-bold text-base mt-0.5">${parseFloat(out.c2).toFixed(8)}°</span>
+                        </div>`;
+                } else if (hasta === 'WGS84_GMS') {
+                    container.innerHTML = `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 col-span-2 text-center">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Posición Geográfica GMS</span>
+                            <span class="text-slate-900 block font-mono font-bold text-sm mt-1">${convertirDecimalAGMS(out.c1, true)}</span>
+                            <span class="text-slate-900 block font-mono font-bold text-sm mt-0.5">${convertirDecimalAGMS(out.c2, false)}</span>
+                        </div>`;
+                } else {
+                    container.innerHTML = `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${hasta} Este (X)</span>
+                            <span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${formatearMiles(out.c1)} m</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${hasta} Norte (Y)</span>
+                            <span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${formatearMiles(out.c2)} m</span>
+                        </div>`;
+                }
+
+                if (out.lat !== undefined && out.lon !== undefined) {
+                    levantarMapa(parseFloat(out.lat), parseFloat(out.lon));
+                }
+
+            } catch (err) {
+                container.innerHTML = "<p class='col-span-2 text-center text-sm font-bold text-red-700'>Error de comunicación de red con el API.</p>";
+                boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
+            }
+        }
+
+        adaptarFormulario();
+    </script>
+</body>
+</html>
