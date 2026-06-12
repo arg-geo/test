@@ -412,9 +412,9 @@ function adaptarFormulario() {
             let csvContenido = "id,c1_origen,c2_origen,c1_destino,c2_destino,estado_validacion\n";
             datosUltimoLoteProcesado.forEach(pt => {
                 if (pt.exito) {
-                    csvContenido += `${pt.id},"${pt.c1_orig_str}","${pt.c2_orig_str}",${pt.c1},${pt.c2},APROBADO\n`;
+                    csvContenido += `${pt.id},${pt.c1_orig_str},${pt.c2_orig_str},${pt.c1},${pt.c2},APROBADO\n`;
                 } else {
-                    csvContenido += `${pt.id},"${pt.c1_orig_str}","${pt.c2_orig_str}",,,RECHAZADO_${pt.error}\n`;
+                    csvContenido += `${pt.id},${pt.c1_orig_str},${pt.c2_orig_str},,,RECHAZADO_${pt.error}\n`;
                 }
             });
 
