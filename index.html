@@ -404,45 +404,54 @@
             lector.readAsText(archivo);
         }
 
-        function descargarReporteCsv() {
-            if (!datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) return;
-
-            const hasta = document.getElementById('srcHasta').value;
-            const zonaDestino = document.getElementById('valZonaDestino').value;
-
-            // Construir contenido del .CSV
-            let csvContenido = "id,c1_origen,c2_origen,c1_destino,c2_destino,estado_validacion\n";
-            datosUltimoLoteProcesado.forEach(pt => {
-                if (pt.exito) {
-                    csvContenido += `${pt.id},"${pt.c1_orig_str}","${pt.c2_orig_str}",${pt.c1},${pt.c2},APROBADO\n`;
-                } else {
-                    csvContenido += `${pt.id},"${pt.c1_orig_str}","${pt.c2_orig_str}",,,RECHAZADO_${pt.error}\n`;
-                }
-            });
-
-            // Generar nombre dinámico estricto: SistemaDestino_Zona_Año_Mes_Día_Timestamp.csv
-            const ahora = new Date();
-            const yyyy = ahora.getFullYear();
-            const mm = String(ahora.getMonth() + 1).padStart(2, '0');
-            const dd = String(ahora.getDate()).padStart(2, '0');
-            const ts = ahora.getTime();
-
-            let txtZona = (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') ? `_Z${zonaDestino}` : "";
-            let nombreArchivo = `${hasta}${txtZona}_${yyyy}_${mm}_${dd}_${ts}.csv`;
-
-            // Trigger descarga web
-            const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", nombreArchivo);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        }
+    	function descargarCSVResultados() {
+		    if (!datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) {
+		        alert("No hay datos disponibles para descargar.");
+		        return;
+		    }
+		
+		    const hasta = document.getElementById('srcHasta').value;
+		    
+		    // Encabezados
+		    let csvContenido = "id,origen_c1,origen_c2,resultado_c1,resultado_c2,estado\n";
+		
+		    // Filas de datos (Sin comillas en las de origen)
+		    datosUltimoLoteProcesado.forEach(pt => {
+		        let colC1 = "-", colC2 = "-", estadoStr = "ERROR";
+		        if (pt.exito) {
+		            colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : pt.c1.toFixed(3);
+		            colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : pt.c2.toFixed(3);
+		            estadoStr = "EXITO";
+		        } else {
+		            estadoStr = pt.error;
+		        }
+		
+		        // Remoción de cualquier comilla usando .replace(/["']/g, "") si vinieran del parser original
+		        const origC1Limpio = String(pt.c1_orig_str).replace(/["']/g, "").trim();
+		        const origC2Limpio = String(pt.c2_orig_str).replace(/["']/g, "").trim();
+		
+		        csvContenido += `${pt.id},${origC1Limpio},${origC2Limpio},${colC1},${colC2},${estadoStr}\n`;
+		    });
+		
+		    // OBTENER AÑO ACTUAL DINÁMICO
+		    const anioActual = new Date().getFullYear();
+		
+		    // AGREGAR LÍNEA INTERMEDIA EN BLANCO Y FILA DE CRÉDITOS SOLICITADA
+		    csvContenido += "\n"; 
+		    csvContenido += `https://arg-geo.github.io/conversor-gtm-utm/   Todos los derechos reservados (${anioActual})\n`;
+		
+		    // Crear el objeto de descarga
+		    const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' });
+		    const link = document.createElement("a");
+		    const url = URL.createObjectURL(blob);
+		    
+		    link.setAttribute("href", url);
+		    link.setAttribute("download", `resultados_geodesicos_${anioActual}.csv`);
+		    link.style.visibility = 'hidden';
+		    document.body.appendChild(link);
+		    link.click();
+		    document.body.removeChild(link);
+		}
 
 
 
