@@ -320,138 +320,159 @@
         }
 
         async function ejecutarProcesamientoLote() {
-            const archivoInput = document.getElementById('fileCsv');
-            if (archivoInput.files.length === 0) { alert("Por favor seleccione un archivo .csv primero."); return; }
+    const archivoInput = document.getElementById('fileCsv');
+    if (!archivoInput || archivoInput.files.length === 0) { 
+        alert("Por favor seleccione un archivo .csv primero."); 
+        return; 
+    }
 
-            const desde = document.getElementById('srcDesde').value;
-            const hasta = document.getElementById('srcHasta').value;
-            const zonaOrigen = document.getElementById('valZonaOrigen').value;
-            const zonaDestino = document.getElementById('valZonaDestino').value;
+    const desde = document.getElementById('srcDesde').value;
+    const hasta = document.getElementById('srcHasta').value;
+    const zonaOrigen = document.getElementById('valZonaOrigen').value;
+    const zonaDestino = document.getElementById('valZonaDestino').value;
 
-            const archivo = archivoInput.files[0];
-            const lector = new FileReader();
+    const archivo = archivoInput.files[0];
+    const lector = new FileReader();
 
-            lector.onload = async function(e) {
-                const puntosRaw = parsearCSV(e.target.result);
-                if (puntosRaw.length === 0) return;
+    lector.onload = async function(e) {
+        try {
+            const puntosRaw = parsearCSV(e.target.result);
+            if (!puntosRaw || puntosRaw.length === 0) return;
 
-                if (puntosRaw.length > 25) {
-                    alert(`El archivo contiene ${puntosRaw.length} puntos. El límite máximo permitido para no sobrecargar el servidor es de 25 puntos.`);
-                    return;
-                }
+            if (puntosRaw.length > 25) {
+                alert(`El archivo contiene ${puntosRaw.length} puntos. El límite máximo permitido es de 25 puntos.`);
+                return;
+            }
 
-                // Normalizar/Parsear el formato en el cliente si es GMS antes de enviar al lote
-                const puntosProcesados = puntosRaw.map(p => {
-                    let c1 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c1_raw) : parseFloat(p.c1_raw);
-                    let c2 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c2_raw) : parseFloat(p.c2_raw);
-                    return { id: p.id, c1, c2, c1_orig_str: p.c1_raw, c2_orig_str: p.c2_raw };
-                });
+            // Mapeo inicial de datos en el cliente
+            const puntosProcesados = puntosRaw.map(p => {
+                let c1 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c1_raw) : parseFloat(p.c1_raw);
+                let c2 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c2_raw) : parseFloat(p.c2_raw);
+                return { id: p.id, c1: c1, c2: c2, c1_orig_str: p.c1_raw, c2_orig_str: p.c2_raw };
+            });
 
-                const boxResLote = document.getElementById('boxResultadosLote');
-                const tbody = document.getElementById('tablaLoteCuerpo');
+            const boxResLote = document.getElementById('boxResultadosLote');
+            const tbody = document.getElementById('tablaLoteCuerpo');
+            
+            if (tbody) {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center italic text-slate-500 animate-pulse">Procesando ráfaga masiva en el servidor geodésico...</td></tr>`;
-                boxResLote.classList.remove('hidden');
+            }
+            if (boxResLote) boxResLote.classList.remove('hidden');
 
-                try {
-                    const response = await fetch(`${API_URL}/convertir-lote`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ puntos: puntosProcesados, desde, hasta, zonaOrigen, zonaDestino })
-                    });
+            const response = await fetch(`${API_URL}/convertir-lote`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ puntos: puntosProcesados, desde, hasta, zonaOrigen, zonaDestino })
+            });
 
-                    const r = await response.json();
-                    if (!r.exito) {
-                        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">⚠️ Error en bloque: ${r.error}</td></tr>`;
-                        return;
+            if (!response.ok) throw new Error("Fallo en la respuesta del servidor");
+
+            const r = await response.json();
+            if (!r.exito) {
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">⚠️ Error: ${r.error}</td></tr>`;
+                return;
+            }
+
+            // VINCULACIÓN CRÍTICA PARA LA DESCARGA POSTERIOR
+            datosUltimoLoteProcesado = r.resultados.map((res, i) => {
+                return {
+                    id: res.id,
+                    exito: res.exito,
+                    c1: res.c1,
+                    c2: res.c2,
+                    error: res.error,
+                    c1_orig_str: puntosProcesados[i].c1_orig_str,
+                    c2_orig_str: puntosProcesados[i].c2_orig_str
+                };
+            });
+
+            if (tbody) {
+                tbody.innerHTML = "";
+                datosUltimoLoteProcesado.forEach(pt => {
+                    let colC1 = "-", colC2 = "-", badge = "";
+                    if (pt.exito) {
+                        colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : formatearMiles(pt.c1);
+                        colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : formatearMiles(pt.c2);
+                        badge = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">ÉXITO</span>`;
+                    } else {
+                        badge = `<span class="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded text-[10px]">${pt.error}</span>`;
                     }
 
-                    // Cruzar arrays para pintar resultados limpios en pantalla
-                    datosUltimoLoteProcesado = r.resultados.map((res, i) => {
-                        return {
-                            ...res,
-                            c1_orig_str: puntosProcesados[i].c1_orig_str,
-                            c2_orig_str: puntosProcesados[i].c2_orig_str
-                        };
-                    });
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100">
+                            <td class="p-2 text-center text-slate-400 font-bold border-r">${pt.id}</td>
+                            <td class="p-2 text-slate-600">${pt.c1_orig_str}</td>
+                            <td class="p-2 text-slate-600">${pt.c2_orig_str}</td>
+                            <td class="p-2 font-bold text-slate-900">${colC1}</td>
+                            <td class="p-2 font-bold text-slate-900">${colC2}</td>
+                            <td class="p-2 text-center">${badge}</td>
+                        </tr>`;
+                });
+            }
 
-                    tbody.innerHTML = "";
-                    datosUltimoLoteProcesado.forEach(pt => {
-                        let colC1 = "-", colC2 = "-", badge = "";
-                        if (pt.exito) {
-                            colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : formatearMiles(pt.c1);
-                            colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : formatearMiles(pt.c2);
-                            badge = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">ÉXITO</span>`;
-                        } else {
-                            badge = `<span class="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded text-[10px]" title="${pt.error}">RECHAZADO</span>`;
-                        }
-
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-slate-50">
-                                <td class="p-2 text-center text-slate-400 font-bold border-r">${pt.id}</td>
-                                <td class="p-2 text-slate-600">${pt.c1_orig_str}</td>
-                                <td class="p-2 text-slate-600">${pt.c2_orig_str}</td>
-                                <td class="p-2 font-bold text-slate-900">${colC1}</td>
-                                <td class="p-2 font-bold text-slate-900">${colC2}</td>
-                                <td class="p-2 text-center">${badge}</td>
-                            </tr>`;
-                    });
-
-                } catch (err) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">Fallo crítico de enlace con el API.</td></tr>`;
-                }
-            };
-
-            lector.readAsText(archivo);
+        } catch (err) {
+            console.error("Error en procesamiento por lotes:", err);
+            const tbody = document.getElementById('tablaLoteCuerpo');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">Fallo de enlace u operación en el módulo de lotes.</td></tr>`;
+            }
         }
+    };
+
+    lector.readAsText(archivo);
+}
 
     	function descargarCSV() {
-		    if (!datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) {
-		        alert("No hay datos disponibles para descargar.");
-		        return;
-		    }
-		
-		    const hasta = document.getElementById('srcHasta').value;
-		    
-		    // Encabezados
-		    let csvContenido = "id,origen_c1,origen_c2,resultado_c1,resultado_c2,estado\n";
-		
-		    // Filas de datos (Sin comillas en las de origen)
-		    datosUltimoLoteProcesado.forEach(pt => {
-		        let colC1 = "-", colC2 = "-", estadoStr = "ERROR";
-		        if (pt.exito) {
-		            colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : pt.c1.toFixed(3);
-		            colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : pt.c2.toFixed(3);
-		            estadoStr = "EXITO";
-		        } else {
-		            estadoStr = pt.error;
-		        }
-		
-		        // Remoción de cualquier comilla usando .replace(/["']/g, "") si vinieran del parser original
-		        const origC1Limpio = String(pt.c1_orig_str).replace(/["']/g, "").trim();
-		        const origC2Limpio = String(pt.c2_orig_str).replace(/["']/g, "").trim();
-		
-		        csvContenido += `${pt.id},${origC1Limpio},${origC2Limpio},${colC1},${colC2},${estadoStr}\n`;
-		    });
-		
-		    // OBTENER AÑO ACTUAL DINÁMICO
-		    const anioActual = new Date().getFullYear();
-		
-		    // AGREGAR LÍNEA INTERMEDIA EN BLANCO Y FILA DE CRÉDITOS SOLICITADA
-		    csvContenido += "\n"; 
-		    csvContenido += `https://arg-geo.github.io/conversor-gtm-utm/   Todos los derechos reservados (${anioActual})\n`;
-		
-		    // Crear el objeto de descarga
-		    const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' });
-		    const link = document.createElement("a");
-		    const url = URL.createObjectURL(blob);
-		    
-		    link.setAttribute("href", url);
-		    link.setAttribute("download", `resultados_geodesicos_${anioActual}.csv`);
-		    link.style.visibility = 'hidden';
-		    document.body.appendChild(link);
-		    link.click();
-		    document.body.removeChild(link);
-		}
+    if (typeof datosUltimoLoteProcesado === 'undefined' || !datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) {
+        alert("No hay datos calculados disponibles para descargar.");
+        return;
+    }
+
+    const hasta = document.getElementById('srcHasta').value;
+    
+    // Encabezados oficiales del CSV
+    let csvContenido = "id,origen_c1,origen_c2,resultado_c1,resultado_c2,estado\n";
+
+    datosUltimoLoteProcesado.forEach(pt => {
+        let colC1 = "-", colC2 = "-", estadoStr = "ERROR";
+        
+        if (pt.exito) {
+            colC1 = hasta.startsWith('WGS84') ? parseFloat(pt.c1).toFixed(8) : parseFloat(pt.c1).toFixed(3);
+            colC2 = hasta.startsWith('WGS84') ? parseFloat(pt.c2).toFixed(8) : parseFloat(pt.c2).toFixed(3);
+            estadoStr = "EXITO";
+        } else {
+            estadoStr = pt.error || "ERROR";
+        }
+
+        // Limpieza robusta de comillas en variables originales
+        const rawC1 = pt.c1_orig_str ? String(pt.c1_orig_str).replace(/["']/g, "").trim() : "-";
+        const rawC2 = pt.c2_orig_str ? String(pt.c2_orig_str).replace(/["']/g, "").trim() : "-";
+
+        csvContenido += `${pt.id},${rawC1},${rawC2},${colC1},${colC2},${estadoStr}\n`;
+    });
+
+    // Línea intermedia en blanco y la cadena de créditos requerida
+    const anioActual = new Date().getFullYear();
+    csvContenido += "\n"; 
+    csvContenido += `https://arg-geo.github.io/conversor-gtm-utm/   Todos los derechos reservados (${anioActual})\n`;
+
+    // Procesamiento seguro del Blob de descarga
+    try {
+        const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", `resultados_geodesicos_${anioActual}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (e) {
+        console.error("Fallo de renderizado del archivo blob:", e);
+        alert("Ocurrió un error al compilar el archivo de descarga.");
+    }
+}
 
 
 
