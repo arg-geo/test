@@ -108,25 +108,17 @@
                     Transformar Coordenada
                 </button>
             </div>
-			
-			
-			<div id="panelLote" class="hidden space-y-4">
-				<div class="bg-blue-50 border border-blue-200 p-3 rounded-xl text-xs">
-					<span class="font-bold text-blue-900 block mb-1">📋 Estructura de Columnas Requerida:</span>
-					<p id="txtGuiaCsv" class="text-slate-700 font-medium">Cargando guía de ordenación...</p>
-				</div>
-    
-				<div class="bg-slate-50 p-3 rounded-xl border border-dashed border-slate-300 text-center">
-					<label class="block text-xs font-bold text-slate-700 mb-2">Cargar Archivo .CSV</label>
-					<input type="file" id="fileCsv" accept=".csv" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 file:cursor-pointer hover:file:bg-blue-100" />
-					<p class="text-[10px] text-slate-400 mt-2">Columnas requeridas: <code class="bg-slate-200 px-1 rounded">c1</code> y <code class="bg-slate-200 px-1 rounded">c2</code>. Máximo 25 puntos.</p>
-				</div>
-				<button onclick="ejecutarProcesamientoLote()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm p-3 rounded-xl shadow-md uppercase tracking-wider">
-					Procesar Lote Masivo
-				</button>
-			</div>
-			
-			
+
+            <div id="panelLote" class="hidden space-y-4">
+                <div class="bg-slate-50 p-3 rounded-xl border border-dashed border-slate-300 text-center">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Cargar Archivo .CSV</label>
+                    <input type="file" id="fileCsv" accept=".csv" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 file:cursor-pointer hover:file:bg-blue-100" />
+                    <p class="text-[10px] text-slate-400 mt-2">Columnas requeridas: <code class="bg-slate-200 px-1 rounded">c1</code>, <code class="bg-slate-200 px-1 rounded">c2</code>. Máximo 25 puntos por archivo.</p>
+                </div>
+                <button onclick="ejecutarProcesamientoLote()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm p-3 rounded-xl shadow-md uppercase tracking-wider">
+                    Procesar Lote Masivo
+                </button>
+            </div>
         </section>
 
         <section class="md:col-span-2 space-y-6">
@@ -167,7 +159,7 @@
     </main>
 
     <script>
-        const API_URL = "https://test-backend-zs4u.onrender.com/api";
+        const API_URL = "https://conversor-gtm-backend-1.onrender.com/api";
         let mapa = null; let marcador = null;
         let activeTab = 'individual';
         let datosUltimoLoteProcesado = null; // Guardar caché para descarga diferida
@@ -197,48 +189,36 @@
                 pLote.classList.remove('hidden'); pInd.classList.add('hidden');
             }
         }
-		
-		function adaptarFormulario() {
-			const desde = document.getElementById('srcDesde').value;
-			const hasta = document.getElementById('srcHasta').value;
 
-			document.getElementById('previewGmsC1').classList.add('hidden');
-			document.getElementById('previewGmsC2').classList.add('hidden');
+        function adaptarFormulario() {
+            const desde = document.getElementById('srcDesde').value;
+            const hasta = document.getElementById('srcHasta').value;
 
-			const txtGuia = document.getElementById('txtGuiaCsv');
+            document.getElementById('previewGmsC1').classList.add('hidden');
+            document.getElementById('previewGmsC2').classList.add('hidden');
 
-			if (desde === 'WGS84_DEC' || desde === 'WGS84_GMS') {
-				document.getElementById('lblC1').innerText = "Longitud (Grados Decimales)";
-				document.getElementById('lblC2').innerText = "Latitud (Grados Decimales)";
-				document.getElementById('valC1').placeholder = "-92.5";
-				document.getElementById('valC2').placeholder = "15.0";
-				
-				// Guía para el CSV
-				if (txtGuia) {
-					txtGuia.innerHTML = `La columna <code class="bg-blue-100 font-mono px-1 rounded font-bold">c1</code> debe ser la <strong>Longitud (X)</strong>.<br>La columna <code class="bg-blue-100 font-mono px-1 rounded font-bold">c2</code> debe ser la <strong>Latitud (Y)</strong>.`;
-				}
-			} else {
-				document.getElementById('lblC1').innerText = `${desde} Coordenada Este - X (m)`;
-				document.getElementById('lblC2').innerText = `${desde} Coordenada Norte - Y (m)`;
-				document.getElementById('valC1').placeholder = "500000.000";
-				document.getElementById('valC2').placeholder = "1600000.000";
-				
-				// Guía para el CSV
-				if (txtGuia) {
-					txtGuia.innerHTML = `La columna <code class="bg-blue-100 font-mono px-1 rounded font-bold">c1</code> debe ser la coordenada <strong>Este / X (m)</strong>.<br>La columna <code class="bg-blue-100 font-mono px-1 rounded font-bold">c2</code> debe ser la coordenada <strong>Norte / Y (m)</strong>.`;
-				}
-			}
+            if (desde === 'WGS84_DEC') {
+                document.getElementById('lblC1').innerText = "Longitud (Grados Decimales)";
+                document.getElementById('lblC2').innerText = "Latitud (Grados Decimales)";
+                document.getElementById('valC1').placeholder = "-92.5"; document.getElementById('valC2').placeholder = "15.0";
+            } else if (desde === 'WGS84_GMS') {
+                document.getElementById('lblC1').innerText = "Longitud GMS (Ej: -90 30 30)";
+                document.getElementById('lblC2').innerText = "Latitud GMS (Ej: 15 30 30)";
+                document.getElementById('valC1').placeholder = "-90 30 30"; document.getElementById('valC2').placeholder = "15 30 30";
+            } else {
+                document.getElementById('lblC1').innerText = `${desde} Coordenada Este - X (m)`;
+                document.getElementById('lblC2').innerText = `${desde} Coordenada Norte - Y (m)`;
+                document.getElementById('valC1').placeholder = "500000.000"; document.getElementById('valC2').placeholder = "1600000.000";
+            }
 
-			if (desde === 'UTM_WGS84' || desde === 'UTM_NAD27') document.getElementById('wrapperZonaOrigen').classList.remove('hidden');
-			else document.getElementById('wrapperZonaOrigen').classList.add('hidden');
+            if (desde === 'UTM_WGS84' || desde === 'UTM_NAD27') document.getElementById('wrapperZonaOrigen').classList.remove('hidden');
+            else document.getElementById('wrapperZonaOrigen').classList.add('hidden');
 
-			if (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') document.getElementById('wrapperZonaDestino').classList.remove('hidden');
-			else document.getElementById('wrapperZonaDestino').classList.add('hidden');
+            if (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') document.getElementById('wrapperZonaDestino').classList.remove('hidden');
+            else document.getElementById('wrapperZonaDestino').classList.add('hidden');
 
-			escucharEntradaDinamica();
-		}
-
-
+            escucharEntradaDinamica();
+        }
 
         function limpiarYParsearGMS(str) {
             let s = str.trim().replace(/,/g, '.'); if (!s) return NaN;
@@ -320,281 +300,221 @@
         }
 
         async function ejecutarProcesamientoLote() {
-    const archivoInput = document.getElementById('fileCsv');
-    if (!archivoInput || archivoInput.files.length === 0) { 
-        alert("Por favor seleccione un archivo .csv primero."); 
-        return; 
-    }
+            const archivoInput = document.getElementById('fileCsv');
+            if (archivoInput.files.length === 0) { alert("Por favor seleccione un archivo .csv primero."); return; }
 
-    const desde = document.getElementById('srcDesde').value;
-    const hasta = document.getElementById('srcHasta').value;
-    const zonaOrigen = document.getElementById('valZonaOrigen').value;
-    const zonaDestino = document.getElementById('valZonaDestino').value;
+            const desde = document.getElementById('srcDesde').value;
+            const hasta = document.getElementById('srcHasta').value;
+            const zonaOrigen = document.getElementById('valZonaOrigen').value;
+            const zonaDestino = document.getElementById('valZonaDestino').value;
 
-    const archivo = archivoInput.files[0];
-    const lector = new FileReader();
+            const archivo = archivoInput.files[0];
+            const lector = new FileReader();
 
-    lector.onload = async function(e) {
-        try {
-            const puntosRaw = parsearCSV(e.target.result);
-            if (!puntosRaw || puntosRaw.length === 0) return;
+            lector.onload = async function(e) {
+                const puntosRaw = parsearCSV(e.target.result);
+                if (puntosRaw.length === 0) return;
 
-            if (puntosRaw.length > 25) {
-                alert(`El archivo contiene ${puntosRaw.length} puntos. El límite máximo permitido es de 25 puntos.`);
-                return;
-            }
+                if (puntosRaw.length > 25) {
+                    alert(`El archivo contiene ${puntosRaw.length} puntos. El límite máximo permitido para no sobrecargar el servidor es de 25 puntos.`);
+                    return;
+                }
 
-            // Mapeo inicial de datos en el cliente
-            const puntosProcesados = puntosRaw.map(p => {
-                let c1 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c1_raw) : parseFloat(p.c1_raw);
-                let c2 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c2_raw) : parseFloat(p.c2_raw);
-                return { id: p.id, c1: c1, c2: c2, c1_orig_str: p.c1_raw, c2_orig_str: p.c2_raw };
-            });
+                // Normalizar/Parsear el formato en el cliente si es GMS antes de enviar al lote
+                const puntosProcesados = puntosRaw.map(p => {
+                    let c1 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c1_raw) : parseFloat(p.c1_raw);
+                    let c2 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(p.c2_raw) : parseFloat(p.c2_raw);
+                    return { id: p.id, c1, c2, c1_orig_str: p.c1_raw, c2_orig_str: p.c2_raw };
+                });
 
-            const boxResLote = document.getElementById('boxResultadosLote');
-            const tbody = document.getElementById('tablaLoteCuerpo');
-            
-            if (tbody) {
+                const boxResLote = document.getElementById('boxResultadosLote');
+                const tbody = document.getElementById('tablaLoteCuerpo');
                 tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center italic text-slate-500 animate-pulse">Procesando ráfaga masiva en el servidor geodésico...</td></tr>`;
-            }
-            if (boxResLote) boxResLote.classList.remove('hidden');
+                boxResLote.classList.remove('hidden');
 
-            const response = await fetch(`${API_URL}/convertir-lote`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ puntos: puntosProcesados, desde, hasta, zonaOrigen, zonaDestino })
-            });
+                try {
+                    const response = await fetch(`${API_URL}/convertir-lote`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ puntos: puntosProcesados, desde, hasta, zonaOrigen, zonaDestino })
+                    });
 
-            if (!response.ok) throw new Error("Fallo en la respuesta del servidor");
-
-            const r = await response.json();
-            if (!r.exito) {
-                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">⚠️ Error: ${r.error}</td></tr>`;
-                return;
-            }
-
-            // VINCULACIÓN CRÍTICA PARA LA DESCARGA POSTERIOR
-            datosUltimoLoteProcesado = r.resultados.map((res, i) => {
-                return {
-                    id: res.id,
-                    exito: res.exito,
-                    c1: res.c1,
-                    c2: res.c2,
-                    error: res.error,
-                    c1_orig_str: puntosProcesados[i].c1_orig_str,
-                    c2_orig_str: puntosProcesados[i].c2_orig_str
-                };
-            });
-
-            if (tbody) {
-                tbody.innerHTML = "";
-                datosUltimoLoteProcesado.forEach(pt => {
-                    let colC1 = "-", colC2 = "-", badge = "";
-                    if (pt.exito) {
-                        colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : formatearMiles(pt.c1);
-                        colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : formatearMiles(pt.c2);
-                        badge = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">ÉXITO</span>`;
-                    } else {
-                        badge = `<span class="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded text-[10px]">${pt.error}</span>`;
+                    const r = await response.json();
+                    if (!r.exito) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">⚠️ Error en bloque: ${r.error}</td></tr>`;
+                        return;
                     }
 
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100">
-                            <td class="p-2 text-center text-slate-400 font-bold border-r">${pt.id}</td>
-                            <td class="p-2 text-slate-600">${pt.c1_orig_str}</td>
-                            <td class="p-2 text-slate-600">${pt.c2_orig_str}</td>
-                            <td class="p-2 font-bold text-slate-900">${colC1}</td>
-                            <td class="p-2 font-bold text-slate-900">${colC2}</td>
-                            <td class="p-2 text-center">${badge}</td>
-                        </tr>`;
+                    // Cruzar arrays para pintar resultados limpios en pantalla
+                    datosUltimoLoteProcesado = r.resultados.map((res, i) => {
+                        return {
+                            ...res,
+                            c1_orig_str: puntosProcesados[i].c1_orig_str,
+                            c2_orig_str: puntosProcesados[i].c2_orig_str
+                        };
+                    });
+
+                    tbody.innerHTML = "";
+                    datosUltimoLoteProcesado.forEach(pt => {
+                        let colC1 = "-", colC2 = "-", badge = "";
+                        if (pt.exito) {
+                            colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : formatearMiles(pt.c1);
+                            colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : formatearMiles(pt.c2);
+                            badge = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">ÉXITO</span>`;
+                        } else {
+                            badge = `<span class="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded text-[10px]" title="${pt.error}">RECHAZADO</span>`;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-2 text-center text-slate-400 font-bold border-r">${pt.id}</td>
+                                <td class="p-2 text-slate-600">${pt.c1_orig_str}</td>
+                                <td class="p-2 text-slate-600">${pt.c2_orig_str}</td>
+                                <td class="p-2 font-bold text-slate-900">${colC1}</td>
+                                <td class="p-2 font-bold text-slate-900">${colC2}</td>
+                                <td class="p-2 text-center">${badge}</td>
+                            </tr>`;
+                    });
+
+                } catch (err) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">Fallo crítico de enlace con el API.</td></tr>`;
+                }
+            };
+
+            lector.readAsText(archivo);
+        }
+
+        function descargarReporteCsv() {
+            if (!datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) return;
+
+            const hasta = document.getElementById('srcHasta').value;
+            const zonaDestino = document.getElementById('valZonaDestino').value;
+
+            // Construir contenido del .CSV
+            let csvContenido = "id,c1_origen,c2_origen,c1_destino,c2_destino,estado_validacion\n";
+            datosUltimoLoteProcesado.forEach(pt => {
+                if (pt.exito) {
+                    csvContenido += `${pt.id},"${pt.c1_orig_str}","${pt.c2_orig_str}",${pt.c1},${pt.c2},APROBADO\n`;
+                } else {
+                    csvContenido += `${pt.id},"${pt.c1_orig_str}","${pt.c2_orig_str}",,,RECHAZADO_${pt.error}\n`;
+                }
+            });
+
+            // Generar nombre dinámico estricto: SistemaDestino_Zona_Año_Mes_Día_Timestamp.csv
+            const ahora = new Date();
+            const yyyy = ahora.getFullYear();
+            const mm = String(ahora.getMonth() + 1).padStart(2, '0');
+            const dd = String(ahora.getDate()).padStart(2, '0');
+            const ts = ahora.getTime();
+
+            let txtZona = (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') ? `_Z${zonaDestino}` : "";
+            let nombreArchivo = `${hasta}${txtZona}_${yyyy}_${mm}_${dd}_${ts}.csv`;
+
+            // Trigger descarga web
+            const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", nombreArchivo);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        async function ejecutarTransformacion() {
+            let desde = document.getElementById('srcDesde').value;
+            const hasta = document.getElementById('srcHasta').value;
+            const c1_raw = document.getElementById('valC1').value.trim();
+            const c2_raw = document.getElementById('valC2').value.trim();
+            const zonaOrigen = document.getElementById('valZonaOrigen').value;
+            const zonaDestino = document.getElementById('valZonaDestino').value;
+
+            if (!c1_raw || !c2_raw) { alert("Complete los campos numéricos."); return; }
+
+            document.getElementById('boxResultados').classList.add('hidden');
+            document.getElementById('boxMapa').classList.add('hidden');
+            if (mapa) { mapa.remove(); mapa = null; marcador = null; }
+
+            let c1 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(c1_raw) : parseFloat(c1_raw);
+            let c2 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(c2_raw) : parseFloat(c2_raw);
+
+            const boxRes = document.getElementById('boxResultados');
+            const container = document.getElementById('contenedorResultados');
+
+            if (isNaN(c1) || isNaN(c2)) {
+                container.innerHTML = `<div class="col-span-2 text-center text-red-700 font-bold text-sm">⚠️ Error en consistencia de datos de entrada.</div>`;
+                boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
+                boxRes.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                container.innerHTML = "<p class='col-span-2 text-center text-sm italic text-slate-500 animate-pulse font-medium'>Calculando y verificando coberturas espaciales...</p>";
+                boxRes.className = "bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm";
+                boxRes.classList.remove('hidden');
+
+                const response = await fetch(`${API_URL}/convertir-individual`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ c1, c2, desde, hasta, zonaOrigen, zonaDestino })
                 });
-            }
 
-        } catch (err) {
-            console.error("Error en procesamiento por lotes:", err);
-            const tbody = document.getElementById('tablaLoteCuerpo');
-            if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">Fallo de enlace u operación en el módulo de lotes.</td></tr>`;
+                const r = await response.json();
+
+                if (!r.exito) {
+                    container.innerHTML = `
+                        <div class="col-span-2 text-center p-2">
+                            <p class="text-red-700 font-bold text-sm">⚠️ Coordenada Fuera de Límites Nacionales</p>
+                            <p class="text-slate-600 text-xs mt-1 max-w-md mx-auto">La proyección geográfica resultante excede los límites legales de Guatemala o no se corresponde con la cobertura de la zona UTM destino solicitada.</p>
+                        </div>`;
+                    boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
+                    return;
+                }
+
+                const out = r.datos;
+                boxRes.className = "bg-white border border-slate-200 rounded-2xl p-5 shadow-sm";
+
+                if (hasta === 'WGS84_DEC') {
+                    container.innerHTML = `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Longitud Decimal</span>
+                            <span class="text-slate-900 block font-mono font-bold text-base mt-0.5">${parseFloat(out.c1).toFixed(8)}°</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Latitud Decimal</span>
+                            <span class="text-slate-900 block font-mono font-bold text-base mt-0.5">${parseFloat(out.c2).toFixed(8)}°</span>
+                        </div>`;
+                } else if (hasta === 'WGS84_GMS') {
+                    container.innerHTML = `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 col-span-2 text-center">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Posición Geográfica GMS</span>
+                            <span class="text-slate-900 block font-mono font-bold text-sm mt-1">${convertirDecimalAGMS(out.c1, true)}</span>
+                            <span class="text-slate-900 block font-mono font-bold text-sm mt-0.5">${convertirDecimalAGMS(out.c2, false)}</span>
+                        </div>`;
+                } else {
+                    container.innerHTML = `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${hasta} Este (X)</span>
+                            <span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${formatearMiles(out.c1)} m</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${hasta} Norte (Y)</span>
+                            <span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${formatearMiles(out.c2)} m</span>
+                        </div>`;
+                }
+
+                if (out.lat !== undefined && out.lon !== undefined) {
+                    levantarMapa(parseFloat(out.lat), parseFloat(out.lon));
+                }
+
+            } catch (err) {
+                container.innerHTML = "<p class='col-span-2 text-center text-sm font-bold text-red-700'>Error de comunicación de red con el API.</p>";
+                boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
             }
         }
-    };
-
-    lector.readAsText(archivo);
-}
-
-    	function descargarCSV() {
-    if (typeof datosUltimoLoteProcesado === 'undefined' || !datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) {
-        alert("No hay datos calculados disponibles para descargar.");
-        return;
-    }
-
-    const hasta = document.getElementById('srcHasta').value;
-    
-    // Encabezados oficiales del CSV
-    let csvContenido = "id,origen_c1,origen_c2,resultado_c1,resultado_c2,estado\n";
-
-    datosUltimoLoteProcesado.forEach(pt => {
-        let colC1 = "-", colC2 = "-", estadoStr = "ERROR";
-        
-        if (pt.exito) {
-            colC1 = hasta.startsWith('WGS84') ? parseFloat(pt.c1).toFixed(8) : parseFloat(pt.c1).toFixed(3);
-            colC2 = hasta.startsWith('WGS84') ? parseFloat(pt.c2).toFixed(8) : parseFloat(pt.c2).toFixed(3);
-            estadoStr = "EXITO";
-        } else {
-            estadoStr = pt.error || "ERROR";
-        }
-
-        // Limpieza robusta de comillas en variables originales
-        const rawC1 = pt.c1_orig_str ? String(pt.c1_orig_str).replace(/["']/g, "").trim() : "-";
-        const rawC2 = pt.c2_orig_str ? String(pt.c2_orig_str).replace(/["']/g, "").trim() : "-";
-
-        csvContenido += `${pt.id},${rawC1},${rawC2},${colC1},${colC2},${estadoStr}\n`;
-    });
-
-    // Línea intermedia en blanco y la cadena de créditos requerida
-    const anioActual = new Date().getFullYear();
-    csvContenido += "\n"; 
-    csvContenido += `https://arg-geo.github.io/conversor-gtm-utm/   Todos los derechos reservados (${anioActual})\n`;
-
-    // Procesamiento seguro del Blob de descarga
-    try {
-        const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        
-        link.setAttribute("href", url);
-        link.setAttribute("download", `resultados_geodesicos_${anioActual}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (e) {
-        console.error("Fallo de renderizado del archivo blob:", e);
-        alert("Ocurrió un error al compilar el archivo de descarga.");
-    }
-}
-
-
-
-		async function ejecutarTransformacion() {
-			let desde = document.getElementById('srcDesde').value;
-			const hasta = document.getElementById('srcHasta').value;
-			const c1_raw = document.getElementById('valC1').value.trim();
-			const c2_raw = document.getElementById('valC2').value.trim();
-			const zonaOrigen = document.getElementById('valZonaOrigen').value;
-			const zonaDestino = document.getElementById('valZonaDestino').value;
-
-			if (!c1_raw || !c2_raw) { alert("Complete los campos numéricos."); return; }
-
-			// Ocultar resultados previos y destruir instancias viejas del mapa de la sesión individual
-			document.getElementById('boxResultados').classList.add('hidden');
-			document.getElementById('boxMapa').classList.add('hidden');
-			if (mapa) { mapa.remove(); mapa = null; marcador = null; }
-
-			let c1 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(c1_raw) : parseFloat(c1_raw);
-			let c2 = desde === 'WGS84_GMS' ? limpiarYParsearGMS(c2_raw) : parseFloat(c2_raw);
-
-			const boxRes = document.getElementById('boxResultados');
-			const container = document.getElementById('contenedorResultados');
-
-			if (isNaN(c1) || isNaN(c2)) {
-				container.innerHTML = `<div class="col-span-2 text-center text-red-700 font-bold text-sm">⚠️ Error en consistencia de datos de entrada.</div>`;
-				boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
-				boxRes.classList.remove('hidden');
-				return;
-			}
-
-			try {
-				container.innerHTML = "<p class='col-span-2 text-center text-sm italic text-slate-500 animate-pulse font-medium'>Calculando y verificando coberturas espaciales...</p>";
-				boxRes.className = "bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm";
-				boxRes.classList.remove('hidden');
-
-				const response = await fetch(`${API_URL}/convertir-individual`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ c1, c2, desde, hasta, zonaOrigen, zonaDestino })
-				});
-
-				const r = await response.json();
-
-				if (!r.exito) {
-					container.innerHTML = `
-						<div class="col-span-2 text-center p-2">
-							<p class="text-red-700 font-bold text-sm">⚠️ Coordenada Fuera de Límites Nacionales</p>
-							<p class="text-slate-600 text-xs mt-1 max-w-md mx-auto">La proyección geográfica resultante excede los límites legales de Guatemala o no se corresponde con la cobertura de la zona UTM destino solicitada.</p>
-						</div>`;
-					boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
-					return;
-				}
-
-				const out = r.datos;
-				boxRes.className = "bg-white border border-slate-200 rounded-2xl p-5 shadow-sm";
-
-				// Renderizado del HTML de Resultados según el sistema destino
-				if (hasta === 'WGS84_DEC') {
-					container.innerHTML = `
-						<div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-							<span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Longitud Decimal</span>
-							<span class="text-slate-900 block font-mono font-bold text-base mt-0.5">${parseFloat(out.c1).toFixed(8)}°</span>
-						</div>
-						<div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-							<span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Latitud Decimal</span>
-							<span class="text-slate-900 block font-mono font-bold text-base mt-0.5">${parseFloat(out.c2).toFixed(8)}°</span>
-						</div>`;
-				} else if (hasta === 'WGS84_GMS') {
-					container.innerHTML = `
-						<div class="bg-slate-50 p-3 rounded-xl border border-slate-200 col-span-2 text-center">
-							<span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Posición Geográfica GMS</span>
-							<span class="text-slate-900 block font-mono font-bold text-sm mt-1">${convertirDecimalAGMS(out.c1, true)}</span>
-							<span class="text-slate-900 block font-mono font-bold text-sm mt-0.5">${convertirDecimalAGMS(out.c2, false)}</span>
-						</div>`;
-				} else {
-					container.innerHTML = `
-						<div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-							<span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${hasta} Este (X)</span>
-							<span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${formatearMiles(out.c1)} m</span>
-						</div>
-						<div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-							<span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${hasta} Norte (Y)</span>
-							<span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${formatearMiles(out.c2)} m</span>
-						</div>`;
-				}
-
-				// LÓGICA DE APERTURA EXCLUSIVA DEL MAPA PARA EL FORMULARIO INDIVIDUAL
-				// Identifica las coordenadas geográficas correspondientes para Leaflet (requiere latitud y longitud)
-				let mapaLat = null;
-				let mapaLon = null;
-
-				if (hasta === 'WGS84_DEC' || hasta === 'WGS84_GMS') {
-					// Si el destino es geográfico, las respuestas out.c1 y out.c2 son Longitud y Latitud respectivamente
-					mapaLon = parseFloat(out.c1);
-					mapaLat = parseFloat(out.c2);
-				} else if (desde === 'WGS84_DEC' || desde === 'WGS84_GMS') {
-					// Si el destino es métrico pero el origen era geográfico, tomamos los valores limpios iniciales
-					mapaLon = c1;
-					mapaLat = c2;
-				} else if (out.lat !== undefined && out.lon !== undefined) {
-					// En caso alternativo, si el API adjunta las variables auxiliares ya procesadas en el backend
-					mapaLat = parseFloat(out.lat);
-					mapaLon = parseFloat(out.lon);
-				}
-
-				// Si se lograron consolidar coordenadas geográficas válidas, despliega el mapa en pantalla
-				if (mapaLat !== null && mapaLon !== null && !isNaN(mapaLat) && !isNaN(mapaLon)) {
-					document.getElementById('boxMapa').classList.remove('hidden');
-					levantarMapa(mapaLat, mapaLon);
-				}
-
-			} catch (err) {
-				console.error("Error en transformación individual:", err);
-				container.innerHTML = "<p class='col-span-2 text-center text-sm font-bold text-red-700'>Error de comunicación de red con el API.</p>";
-				boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
-			}
-		}
-
-
-
-
 
         adaptarFormulario();
     </script>
