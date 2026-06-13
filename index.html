@@ -3,11 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Geodésico Nacional - Guatemala</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="theme-color" content="#1e40af">
+
+    <meta name="google-site-verification" content="_TVN5tXrj1VuaQ7k8ocbtDVG3MxB6Hes4ZC5e979Pyo" />
+
+    <title>Conversor de Coordenadas WGS84, GTM, UTM WGS84 y UTM NAD27 para Guatemala</title>
+    <meta name="description" content="Conversor gratuito de coordenadas para Guatemala. Transforme coordenadas entre GTM, UTM WGS84, UTM NAD27 y coordenadas geográficas WGS84. Incluye validación territorial y visualización en mapa.">
+    <meta name="keywords" content="GTM Guatemala, coordenadas Guatemala, conversor GTM, conversor UTM Guatemala, UTM WGS84 Guatemala, UTM NAD27 Guatemala, WGS84 Guatemala, transformación de coordenadas, transformación de coordenadas Guatemala, geodesia Guatemala, cartografía Guatemala, SIG Guatemala, GIS Guatemala">
+    <meta name="author" content="MSc Aldo Gonzalez">
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta name="language" content="Spanish">
+    <meta name="geo.region" content="GT">
+    <meta name="geo.placename" content="Guatemala">
+    <link rel="canonical" href="https://arg-geo.github.io/conversor-gtm-utm/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Conversor de Coordenadas GTM, UTM y WGS84 para Guatemala">
+    <meta property="og:description" content="Herramienta gratuita para convertir coordenadas GTM, UTM WGS84, UTM NAD27 y WGS84 para Guatemala.">
+    <meta property="og:locale" content="es_GT">
+    <meta property="og:site_name" content="Conversor GTM Guatemala">
+    <meta property="og:url" content="https://arg-geo.github.io/conversor-gtm-utm/">
+    <meta property="og:image" content="https://arg-geo.github.io/conversor-gtm-utm/preview_v4.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:alt" content="Conversor de coordenadas GTM, UTM y WGS84 para Guatemala">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Conversor de Coordenadas GTM, UTM y WGS84 para Guatemala">
+    <meta name="twitter:description" content="Herramienta gratuita para convertir coordenadas GTM, UTM WGS84, UTM NAD27 y WGS84 para Guatemala.">
+    <meta name="twitter:image" content="https://arg-geo.github.io/conversor-gtm-utm/preview_v4.jpg">
+    <meta name="twitter:image:alt" content="Conversor de coordenadas GTM, UTM y WGS84 para Guatemala">
+
+    <script type="application/ld+json">
+    {
+      "@context":"https://schema.org",
+      "@type":"WebApplication",
+      "name":"Conversor de Coordenadas GTM Guatemala",
+      "applicationCategory":"UtilitiesApplication",
+      "operatingSystem":"Any",
+      "description":"Conversor de coordenadas GTM, UTM WGS84, UTM NAD27 y WGS84 para Guatemala.",
+      "inLanguage":"es",
+      "areaServed":"GT"
+    }
+    </script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6DKHP28GP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-W6DKHP28GP');
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
+
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans relative">
 
     <div id="modalAviso" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
