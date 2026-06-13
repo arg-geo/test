@@ -106,7 +106,7 @@
             </div>
 
             <div class="pb-2">
-                <a href="ayuda.html" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition-all duration-150 shadow-sm">
+                <a href="ayuda.html" target="_blank" onclick="gtag('event', 'consulta_ayuda', {'origen_clic': 'pestana_index'});" class="inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition-all duration-150 shadow-sm">
                     <i class="fa-solid fa-circle-question text-blue-700 mr-1.5 text-sm"></i> Guía Técnica
                 </a>
             </div>
@@ -412,6 +412,13 @@ function adaptarFormulario() {
 
                 if (puntosRaw.length > 25) {
                     alert(`El archivo contiene ${puntosRaw.length} puntos. El límite máximo permitido para no sobrecargar el servidor es de 25 puntos.`);
+                    
+                    // --- TELEMETRÍA GA4: EXCESO DE LÍMITE RECHAZADO EN CLIENTE ---
+                    gtag('event', 'procesamiento_lote_limite', {
+                        'cantidad_puntos_intentados': puntosRaw.length,
+                        'sistema_origen': desde,
+                        'sistema_destino': hasta
+                    });
                     return;
                 }
 
@@ -437,6 +444,14 @@ function adaptarFormulario() {
                     const r = await response.json();
                     if (!r.exito) {
                         tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">⚠️ Error en bloque: ${r.error}</td></tr>`;
+                        
+                        // --- TELEMETRÍA GA4: ERROR EN BLOQUE DEVUELTO POR BACKEND ---
+                        gtag('event', 'procesamiento_lote_error', {
+                            'tipo_error': 'error_bloque_backend',
+                            'mensaje_error': r.error || 'Desconocido',
+                            'sistema_origen': desde,
+                            'sistema_destino': hasta
+                        });
                         return;
                     }
 
@@ -447,6 +462,22 @@ function adaptarFormulario() {
                             c1_orig_str: puntosProcesados[i].c1_orig_str,
                             c2_orig_str: puntosProcesados[i].c2_orig_str
                         };
+                    });
+
+                    // Extracción de estadísticas para métricas antes del bucle de renderizado
+                    const totalPuntos = datosUltimoLoteProcesado.length;
+                    const puntosAceptados = datosUltimoLoteProcesado.filter(p => p.exito).length;
+                    const puntosRechazados = datosUltimoLoteProcesado.filter(p => !p.exito).length;
+
+                    // --- TELEMETRÍA GA4: PROCESAMIENTO POR LOTES COMPLETADO CON ÉXITO ---
+                    gtag('event', 'procesamiento_lote_exito', {
+                        'sistema_origen': desde,
+                        'sistema_destino': hasta,
+                        'zona_origen': zonaOrigen,
+                        'zona_destino': zonaDestino,
+                        'total_puntos_procesados': totalPuntos,
+                        'puntos_aceptados': puntosAceptados,
+                        'puntos_rechazados': puntosRechazados
                     });
 
                     tbody.innerHTML = "";
@@ -486,7 +517,15 @@ function adaptarFormulario() {
                     });
 
                 } catch (err) {
+                    console.error("Error en procesamiento por lote:", err);
                     tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center font-bold text-red-700">Fallo crítico de enlace con el API.</td></tr>`;
+                    
+                    // --- TELEMETRÍA GA4: FALLO CRÍTICO DE RED O TIMEOUT ---
+                    gtag('event', 'procesamiento_lote_error', {
+                        'tipo_error': 'falla_red_api',
+                        'sistema_origen': desde,
+                        'sistema_destino': hasta
+                    });
                 }
             };
 
@@ -495,9 +534,7 @@ function adaptarFormulario() {
  
  
  
- 
-
-function descargarReporteCsv() {
+ function descargarReporteCsv() {
             if (!datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) return;
 
             const hasta = document.getElementById('srcHasta').value;
@@ -546,6 +583,16 @@ function descargarReporteCsv() {
             let txtZona = (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') ? `_Z${zonaDestino}` : "";
             let nombreArchivo = `${hasta}${txtZona}_${yyyy}_${mm}_${dd}_${ts}.csv`;
 
+            // --- TELEMETRÍA GA4: REGISTRO DE DESCARGA DE REPORTE MASIVO ---
+            gtag('event', 'descarga_reporte_csv', {
+                'sistema_destino': hasta,
+                'zona_destino': (hasta === 'UTM_WGS84' || hasta === 'UTM_NAD27') ? zonaDestino : 'N/A',
+                'total_puntos_guardados': datosUltimoLoteProcesado.length,
+                'puntos_aprobados_guardados': datosUltimoLoteProcesado.filter(p => p.exito).length,
+                'puntos_rechazados_guardados': datosUltimoLoteProcesado.filter(p => !p.exito).length,
+                'nombre_archivo_generado': nombreArchivo
+            });
+
             // Trigger descarga web
             const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
@@ -559,6 +606,8 @@ function descargarReporteCsv() {
                 document.body.removeChild(link);
             }
         }
+
+
 
 
 
@@ -587,11 +636,18 @@ async function ejecutarTransformacion() {
         container.innerHTML = `<div class="col-span-2 text-center text-red-700 font-bold text-sm">⚠️ Error en consistencia de datos de entrada.</div>`;
         boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
         boxRes.classList.remove('hidden');
+
+        // --- TELEMETRÍA GA4: ERROR DE PARSEO / ENTRADA INVÁLIDA ---
+        gtag('event', 'transformacion_individual_error', {
+            'tipo_error': 'consistencia_datos',
+            'sistema_origen': desde,
+            'sistema_destino': hasta
+        });
         return;
     }
 
     try {
-        container.innerHTML = "<p class='col-span-2 text-center text-sm italic text-slate-500 animate-pulse font-medium'>Calculando y verificando coberturas espaciales...</p>";
+        container.innerHTML = "<p class='col-span-2 text-center text-sm italic text-slate-500 animate-pulse font-medium'>Calculando y verifying coberturas espaciales...</p>";
         boxRes.className = "bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm";
         boxRes.classList.remove('hidden');
 
@@ -610,6 +666,15 @@ async function ejecutarTransformacion() {
                     <p class="text-slate-600 text-xs mt-1 max-w-md mx-auto">La proyección geográfica resultante excede los límites legales de Guatemala o no se corresponde con la cobertura de la zona UTM destino solicitada.</p>
                 </div>`;
             boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
+
+            // --- TELEMETRÍA GA4: FILTRO GEOGRÁFICO ACTIVADO (RECHAZADO) ---
+            gtag('event', 'transformacion_individual_error', {
+                'tipo_error': 'fuera_de_limites',
+                'sistema_origen': desde,
+                'sistema_destino': hasta,
+                'zona_origen_intentada': zonaOrigen,
+                'zona_destino_intentada': zonaDestino
+            });
             return;
         }
 
@@ -665,12 +730,33 @@ async function ejecutarTransformacion() {
         if (mapaLat !== null && mapaLon !== null && !isNaN(mapaLat) && !isNaN(mapaLon)) {
             document.getElementById('boxMapa').classList.remove('hidden');
             levantarMapa(mapaLat, mapaLon);
+            
+            // --- TELEMETRÍA GA4: INTERACCIÓN EXITOSA CON MAPA GENERADO ---
+            gtag('event', 'uso_mapa_control', {
+                'sistema_destino': hasta,
+                'origen_llamada': 'individual'
+            });
         }
+
+        // --- TELEMETRÍA GA4: TRANSFORMACIÓN INDIVIDUAL COMPLETADA CON ÉXITO ---
+        gtag('event', 'transformacion_individual', {
+            'sistema_origen': desde,
+            'sistema_destino': hasta,
+            'zona_origen': zonaOrigen,
+            'zona_destino': zonaDestino
+        });
 
     } catch (err) {
         console.error("Error en transformación individual:", err);
         container.innerHTML = "<p class='col-span-2 text-center text-sm font-bold text-red-700'>Error de comunicación de red con el API.</p>";
         boxRes.className = "bg-red-50 border border-red-200 rounded-2xl p-5 shadow-sm";
+
+        // --- TELEMETRÍA GA4: CAÍDA DEL BACKEND O RED ---
+        gtag('event', 'transformacion_individual_error', {
+            'tipo_error': 'falla_red_api',
+            'sistema_origen': desde,
+            'sistema_destino': hasta
+        });
     }
 }
 
