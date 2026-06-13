@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manual de Usuario y Guía Técnica - Conversor Geodésico GTM/UTM</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -12,6 +13,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
+    <!-- Encabezado Principal -->
     <header class="bg-gradient-to-r from-blue-900 to-slate-800 text-white shadow-md">
         <div class="max-w-5xl mx-auto px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="flex items-center space-x-4">
@@ -31,8 +33,10 @@
         </div>
     </header>
 
+    <!-- Contenido Principal -->
     <main class="flex-grow max-w-5xl w-full mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         
+        <!-- Navegación Lateral (Índice Rápido) -->
         <aside class="md:col-span-1">
             <div class="sticky top-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide px-2 mb-2">Contenido</p>
@@ -40,12 +44,15 @@
                 <a href="#individual" class="block px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg border-l-2 border-transparent hover:border-slate-300 transition-all">2. Transformación Individual</a>
                 <a href="#lotes" class="block px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg border-l-2 border-transparent hover:border-slate-300 transition-all">3. Procesamiento por Lotes</a>
                 <a href="#estructura-csv" class="block px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg border-l-2 border-transparent hover:border-slate-300 transition-all">4. Estructura del CSV (2 Columnas)</a>
-                <a href="#validaciones" class="block px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50/50 font-semibold rounded-lg border-l-2 border-blue-700 transition-all">5. Cobertura Geográfica Nacional</a>
+                <a href="#validaciones" class="block px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg border-l-2 border-transparent hover:border-slate-300 transition-all">5. Cobertura Geográfica</a>
+                <a href="#disclaimer" class="block px-3 py-2 text-xs font-medium text-amber-700 bg-amber-50/50 font-semibold rounded-lg border-l-2 border-amber-500 transition-all">6. Exención de Responsabilidad</a>
             </div>
         </aside>
 
+        <!-- Bloque de Documentación Técnica -->
         <section class="md:col-span-3 space-y-10">
             
+            <!-- Sección 1: Introducción -->
             <article id="introduccion" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm scroll-mt-6">
                 <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
                     <i class="fa-solid fa-circle-info text-blue-600 text-sm"></i> 1. Introducción al Sistema
@@ -56,6 +63,7 @@
                 </p>
             </article>
 
+            <!-- Sección 2: Transformación Individual -->
             <article id="individual" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm scroll-mt-6">
                 <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
                     <i class="fa-solid fa-user text-blue-600 text-sm"></i> 2. Transformación Individual
@@ -71,6 +79,7 @@
                 </ul>
             </article>
 
+            <!-- Sección 3: Procesamiento por Lotes -->
             <article id="lotes" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm scroll-mt-6">
                 <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
                     <i class="fa-solid fa-file-csv text-blue-600 text-sm"></i> 3. Procesamiento por Lotes (Masivo)
@@ -86,6 +95,7 @@
                 </div>
             </article>
 
+            <!-- Sección 4: Estructura del CSV -->
             <article id="estructura-csv" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm scroll-mt-6 bg-gradient-to-b from-white to-slate-50/50">
                 <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
                     <i class="fa-solid fa-table text-emerald-600 text-sm"></i> 4. Estructura Obligatoria del Archivo CSV
@@ -94,6 +104,7 @@
                     El archivo <strong class="text-slate-800">.csv</strong> debe estar separado únicamente por **comas ( , )** y contener **únicamente dos columnas de datos**. No se debe incluir ninguna columna de ID o identificador; el sistema asigna automáticamente un correlativo interno ordenado según la posición de la fila.
                 </p>
 
+                <!-- Tabla de Estructura -->
                 <div class="overflow-x-auto mt-4 border border-slate-200 rounded-xl bg-white shadow-inner">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
@@ -131,6 +142,7 @@
                     </table>
                 </div>
 
+                <!-- Ejemplo Visual del Archivo -->
                 <div class="mt-4">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Ejemplo visual del archivo .csv plano (Sin columna ID):</p>
                     <pre class="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-xs overflow-x-auto shadow-md border border-slate-800">
@@ -139,81 +151,58 @@ c1_raw,c2_raw
 489500.000,1585400.750
 515620.333,1645120.900</pre>
                 </div>
-
-                <div class="mt-5 bg-slate-100 rounded-xl p-4 border border-slate-200">
-                    <p class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-bullseye text-blue-700"></i> Normas Técnicas de Precisión en Resultados:
-                    </p>
-                    <ul class="list-disc pl-5 space-y-1 text-xs text-slate-600">
-                        <li><strong class="text-slate-800">Sistemas Proyectados (GTM / UTM):</strong> Tanto en la pantalla como en el reporte de descarga final, el resultado se calcula con <span class="text-blue-700 font-bold">exactamente 3 dígitos decimales</span>. En la pantalla web se visualizan comas de miles para facilitar la lectura, pero el CSV de salida se genera con números limpios (sin comas de miles) para evitar la fragmentación de columnas en software GIS.</li>
-                        <li><strong class="text-slate-800">Sistemas Geográficos Dec.:</strong> Se calculan con <span class="text-blue-700 font-bold">exactamente 8 dígitos decimales</span> para resguardar la precisión submétrica.</li>
-                        <li><strong class="text-slate-800">Sistemas Geográficos GMS:</strong> En pantalla y en la descarga masiva se inyecta la cadena estructurada con los símbolos estándar de grado, minuto y segundo sexagesimal.</li>
-                    </ul>
-                </div>
             </article>
 
+            <!-- Sección 5: Cobertura Geográfica Nacional -->
             <article id="validaciones" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm scroll-mt-6">
                 <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved text-blue-600 text-sm"></i> 5. Cobertura Geográfica Nacional y Filtros de Control
                 </h2>
                 <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-                    Para garantizar la integridad cartográfica de los proyectos y evitar errores de asignación por parte de los operadores del laboratorio, el backend geodésico implementa un módulo de validación espacial estricto. Este algoritmo evalúa en tiempo real si las coordenadas resultantes (o de origen) pertenecen geográficamente a las fronteras de la <strong>República de Guatemala</strong>.
+                    Para garantizar la integridad cartográfica de los proyectos y evitar errores de asignación, el backend geodésico implementa un módulo de validación espacial estricto que evalúa en tiempo real si las coordenadas pertenecen al territorio de la <strong class="text-slate-800">República de Guatemala</strong>.
                 </p>
 
-                <h3 class="text-xs font-bold text-slate-800 mt-4 flex items-center gap-1">
-                    <i class="fa-solid fa-map-location-dot text-slate-500"></i> Límites de Cobertura Horizontal y Vertical:
-                </h3>
-                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                    La caja de extensión envolvente (Bounding Box) legal definida para las operaciones nacionales abarca la siguiente ventana geográfica en el sistema WGS84:
-                </p>
                 <ul class="list-disc pl-5 mt-2 space-y-1 text-xs text-slate-600 font-mono bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <li>Latitud Mínima (Límite Sur): <span class="text-slate-900 font-bold">13.73° N</span> (Zona del Pacífico)</li>
-                    <li>Latitud Máxima (Límite Norte): <span class="text-slate-900 font-bold">17.82° N</span> (Vértice de El Ceibo, Petén)</li>
-                    <li>Longitud Mínima (Límite Este): <span class="text-slate-900 font-bold">-88.23° W</span> (Aldea El Florido, Chiquimula)</li>
-                    <li>Longitud Máxima (Límite Oeste): <span class="text-slate-900 font-bold">-92.23° W</span> (Tecún Umán, San Marcos)</li>
+                    <li>Latitud Mínima (Límite Sur): <span class="text-slate-900 font-bold">13.73° N</span></li>
+                    <li>Latitud Máxima (Límite Norte): <span class="text-slate-900 font-bold">17.82° N</span></li>
+                    <li>Longitud Mínima (Límite Este): <span class="text-slate-900 font-bold">-88.23° W</span></li>
+                    <li>Longitud Máxima (Límite Oeste): <span class="text-slate-900 font-bold">-92.23° W</span></li>
                 </ul>
 
-                <h3 class="text-xs font-bold text-slate-800 mt-4 flex items-center gap-1">
-                    <i class="fa-solid fa-bezier-curve text-slate-500"></i> Restricciones Estrictas de Zona UTM (Intersección de Husos):
-                </h3>
-                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                    Dado que el territorio nacional es atravesado por el meridiano 90°W (divisoria de husos cartográficos), el sistema aplica validaciones geométricas diferenciadas según la zona UTM seleccionada para evitar deformaciones por proyección:
+                <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+                    Dado que el meridiano 90°W divide los husos cartográficos del país, se aplican límites longitudinales de resguardo: la <strong class="text-slate-800">Zona 15N</strong> se valida entre los <strong class="text-slate-900">-92.5° y -89.5°</strong>, y la <strong class="text-slate-800">Zona 16N</strong> entre los <strong class="text-slate-900">-90.5° y -88.0°</strong>. Los puntos fuera de rango serán marcados como **RECHAZADOS**.
                 </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
-                    <div class="border border-slate-100 bg-slate-50/50 p-3 rounded-xl">
-                        <span class="block text-xs font-bold text-blue-900"><i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> UTM Zona 15N</span>
-                        <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">
-                            Restringido estrictamente a las longitudes comprendidas entre los <strong class="text-slate-900">-92.5° y -89.5°</strong>. Ideal para el procesamiento de cartografía de la región occidental y central del país.
-                        </p>
-                    </div>
-                    <div class="border border-slate-100 bg-slate-50/50 p-3 rounded-xl">
-                        <span class="block text-xs font-bold text-blue-900"><i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> UTM Zona 16N</span>
-                        <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">
-                            Restringido estrictamente a las longitudes comprendidas entre los <strong class="text-slate-900">-90.5° y -88.0°</strong>. Correspondiente a la cobertura de la región oriental, caribeña y de las Verapaces.
-                        </p>
-                    </div>
+            </article>
+
+            <!-- NUEVO: Sección 6: Exención de Responsabilidad -->
+            <article id="disclaimer" class="bg-white p-6 rounded-2xl border border-amber-200 shadow-sm scroll-mt-6 bg-gradient-to-b from-white to-amber-50/20">
+                <h2 class="text-lg font-bold text-amber-900 border-b border-amber-200 pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced text-amber-600 text-sm"></i> 6. Exención de Responsabilidad Legal
+                </h2>
+                
+                <div class="bg-amber-100/60 text-amber-950 p-4 rounded-xl border border-amber-200 font-sans leading-relaxed text-xs text-justify mt-4">
+                    <strong>AVISO DE EXENCIÓN DE RESPONSABILIDAD:</strong> Este servicio web de conversión cartográfica se proporciona de forma gratuita y con fines exclusivamente informativos, académicos y de utilidad pública. El autor no asume ninguna responsabilidad legal, civil o administrativa por la exactitud, integridad o idoneidad técnica de los datos generados. Es responsabilidad exclusiva del usuario final contrastar y verificar los resultados frente a los marcos geodésicos de referencia oficiales correspondientes.
                 </div>
 
-                <div class="bg-red-50 border border-red-200 text-red-900 rounded-xl p-4 mt-4 text-xs leading-relaxed">
-                    <p class="font-bold flex items-center gap-1.5 text-red-800">
-                        <i class="fa-solid fa-ban"></i> Protocolo en Casos de Rechazo Geográfico:
-                    </p>
-                    <p class="mt-1 text-slate-700">
-                        Si una coordenada ingresada individualmente o dentro de las filas del archivo masivo excede estos límites (o si se intenta procesar un punto de Huehuetenango bajo la Zona 16, por ejemplo), la plataforma activará el escudo de control: la fila se rotulará visualmente con la etiqueta <strong class="text-red-700 font-bold">RECHAZADO</strong>, se suspenderá la llamada de transformación hacia los elipsoides del servidor y se omitirá en los cálculos para salvaguardar la pureza estadística de la base de datos resultante.
-                    </p>
+                <div class="mt-4 bg-slate-900 text-slate-100 p-4 rounded-xl border border-slate-800 flex items-start space-x-3">
+                    <i class="fa-solid fa-graduation-cap text-blue-400 mt-0.5 text-base"></i>
+                    <div class="text-xs leading-relaxed text-slate-300">
+                        <strong class="text-white block uppercase text-[10px] tracking-wider text-blue-400 font-mono mb-1">Aviso de Uso Estricto:</strong>
+                        Se recalca de manera explícita a todos los operadores, investigadores y estudiantes que este sitio web ha sido diseñado con un <span class="text-amber-300 font-semibold underline">propósito estrictamente pedagógico y de simulación académica</span>. Esta herramienta <span class="text-white font-bold">NO debe ser utilizada para la ejecución de trabajos profesionales, catastrales, de ingeniería de precisión, ni para firmas de planos legales</span> que involucren compromisos civiles o institucionales. Para fines profesionales oficiales, recurra siempre a los softwares de postprocesamiento certificados y validados por las autoridades cartográficas estatales.
+                    </div>
                 </div>
             </article>
 
         </section>
     </main>
 
+    <!-- Pie de Página Oficial -->
     <footer class="bg-slate-900 text-slate-400 text-center py-4 text-[11px] border-t border-slate-800 font-mono mt-auto">
         <div>https://arg-geo.github.io/conversor-gtm-utm/</div>
         <div class="text-slate-600 mt-0.5">Todos los derechos reservados (&copy; <span id="anioFooter"></span>)</div>
     </footer>
 
     <script>
-        // Establecer el año actual de forma automática
         document.getElementById('anioFooter').textContent = new Date().getFullYear();
     </script>
 </body>
