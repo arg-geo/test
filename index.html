@@ -79,7 +79,7 @@
                     <option value="UTM_WGS84">UTM WGS84</option>
                     <option value="UTM_NAD27">UTM NAD27 (Clarke 1866)</option>
                     <option value="WGS84_DEC">WGS84 - Grados Decimales</option>
-                    <option value="WGS84_GMS">WGS84 - Grados, Minutos, Segundos (GMS)</option>
+                    <option value="WGS84_GMS" >WGS84 - Grados, Minutos, Segundos (GMS)</option>
                 </select>
             </div>
 
@@ -328,7 +328,8 @@ function adaptarFormulario() {
             return puntos;
         }
 
-        async function ejecutarProcesamientoLote() {
+ 
+ async function ejecutarProcesamientoLote() {
             const archivoInput = document.getElementById('fileCsv');
             if (archivoInput.files.length === 0) { alert("Por favor seleccione un archivo .csv primero."); return; }
 
@@ -386,12 +387,23 @@ function adaptarFormulario() {
                     tbody.innerHTML = "";
                     datosUltimoLoteProcesado.forEach(pt => {
                         let colC1 = "-", colC2 = "-", badge = "";
+                        
                         if (pt.exito) {
-                            //colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : formatearMiles(pt.c1);
-                            //colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : formatearMiles(pt.c2);
-							colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : formatearMiles(pt.c1.toFixed(3));
-							colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : formatearMiles(pt.c2.toFixed(3));
-							
+                            // CORRECCIÓN MULTICRITERIO PARA INTERFAZ VISUAL EN PANTALLA
+                            if (hasta === 'WGS84_GMS') {
+                                // Formatear a texto sexagesimal legible (Grados, Minutos, Segundos)
+                                colC1 = convertirDecimalAGMS(pt.c1, true);  // Longitud
+                                colC2 = convertirDecimalAGMS(pt.c2, false); // Latitud
+                            } else if (hasta === 'WGS84_DEC') {
+                                // Mantener el estándar reglamentario de 8 decimales
+                                colC1 = pt.c1.toFixed(8);
+                                colC2 = pt.c2.toFixed(8);
+                            } else {
+                                // Sistemas proyectados (GTM/UTM): Exactamente 3 decimales fijos con comas de miles
+                                colC1 = formatearMiles(pt.c1.toFixed(3));
+                                colC2 = formatearMiles(pt.c2.toFixed(3));
+                            }
+                            
                             badge = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">ACEPTADO</span>`;
                         } else {
                             badge = `<span class="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded text-[10px]" title="${pt.error}">RECHAZADO</span>`;
@@ -415,6 +427,10 @@ function adaptarFormulario() {
 
             lector.readAsText(archivo);
         }
+ 
+ 
+ 
+ 
 
 function descargarReporteCsv() {
             if (!datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) return;
