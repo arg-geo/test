@@ -174,7 +174,7 @@
 
         function cerrarModal() { document.getElementById('modalAviso').classList.add('hidden'); }
 
-		function cambiarPestaña(tab) {
+function cambiarPestaña(tab) {
             activeTab = tab;
             const btnInd = document.getElementById('btnTabInd');
             const btnLote = document.getElementById('btnTabLote');
@@ -187,35 +187,17 @@
             document.getElementById('boxMapa').classList.add('hidden');
             if (mapa) { mapa.remove(); mapa = null; marcador = null; }
 
-            // Referencia al selector de destino para controlar GMS
-            const selectHasta = document.getElementById('srcHasta');
-            const opcionGms = selectHasta ? selectHasta.querySelector('option[value="WGS84_GMS"]') : null;
-
             if (tab === 'individual') {
                 btnInd.className = "py-2 px-4 text-sm font-bold border-b-2 border-blue-700 text-blue-700";
                 btnLote.className = "py-2 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800";
                 pInd.classList.remove('hidden'); pLote.classList.add('hidden');
-
-                // REQUISITO: Habilitar GMS en destino para transformaciones individuales
-                if (opcionGms) {
-                    opcionGms.disabled = false;
-                }
             } else {
                 btnLote.className = "py-2 px-4 text-sm font-bold border-b-2 border-blue-700 text-blue-700";
                 btnInd.className = "py-2 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800";
                 pLote.classList.remove('hidden'); pInd.classList.add('hidden');
-
-                // REQUISITO: Deshabilitar GMS en destino para procesamiento por lotes
-                if (opcionGms) {
-                    opcionGms.disabled = true;
-                    // Si el usuario tenía seleccionado GMS, lo cambiamos automáticamente a Grados Decimales
-                    if (selectHasta.value === 'WGS84_GMS') {
-                        selectHasta.value = 'WGS84_DEC';
-                    }
-                }
             }
 
-            // Forzar la actualización visual de las etiquetas y guías informativas de entrada
+            // Actualizar etiquetas informativas de entrada
             if (typeof adaptarFormulario === 'function') {
                 adaptarFormulario();
             }
@@ -434,7 +416,7 @@ function adaptarFormulario() {
             lector.readAsText(archivo);
         }
 
-		function descargarReporteCsv() {
+function descargarReporteCsv() {
             if (!datosUltimoLoteProcesado || datosUltimoLoteProcesado.length === 0) return;
 
             const hasta = document.getElementById('srcHasta').value;
@@ -444,9 +426,21 @@ function adaptarFormulario() {
             let csvContenido = "id,c1_origen,c2_origen,c1_destino,c2_destino,estado_validacion\n";
             datosUltimoLoteProcesado.forEach(pt => {
                 if (pt.exito) {
-                    // REQUISITO: 8 decimales para WGS84, 3 decimales planos (sin comas) para GTM/UTM
-                    const c1Dest = hasta.startsWith('WGS84') ? parseFloat(pt.c1).toFixed(8) : parseFloat(pt.c1).toFixed(3);
-                    const c2Dest = hasta.startsWith('WGS84') ? parseFloat(pt.c2).toFixed(8) : parseFloat(pt.c2).toFixed(3);
+                    let c1Dest, c2Dest;
+
+                    if (hasta === 'WGS84_GMS') {
+                        // Si el destino es GMS, inyectar el texto formateado sexagesimal en el CSV
+                        c1Dest = convertirDecimalAGMS(pt.c1, true);
+                        c2Dest = convertirDecimalAGMS(pt.c2, false);
+                    } else if (hasta === 'WGS84_DEC') {
+                        // 8 decimales fijos para grados decimales
+                        c1Dest = parseFloat(pt.c1).toFixed(8);
+                        c2Dest = parseFloat(pt.c2).toFixed(8);
+                    } else {
+                        // 3 decimales planos (sin comas de miles) para sistemas proyectados GTM/UTM
+                        c1Dest = parseFloat(pt.c1).toFixed(3);
+                        c2Dest = parseFloat(pt.c2).toFixed(3);
+                    }
 
                     csvContenido += `${pt.id},${pt.c1_orig_str},${pt.c2_orig_str},${c1Dest},${c2Dest},APROBADO\n`;
                 } else {
