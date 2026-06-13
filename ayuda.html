@@ -22,7 +22,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight">Manual de Usuario y Guía Técnica</h1>
-                    <p class="text-xs text-blue-200 mt-0.5">Plataforma Institucional de Conversión de Coordenadas para Guatemala</p>
+                    <p class="text-xs text-blue-200 mt-0.5">Plataforma de Conversión de Coordenadas para Guatemala</p>
                 </div>
             </div>
             <div>
@@ -58,7 +58,7 @@
                     <i class="fa-solid fa-circle-info text-blue-600 text-sm"></i> 1. Introducción al Sistema
                 </h2>
                 <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-                    Esta herramienta ha sido desarrollada específicamente para cubrir las necesidades técnico-académicas de laboratorios de investigación y cartografía en Guatemala. Permite realizar conversiones directas e inversas de coordenadas espaciales entre los marcos de referencia y sistemas de proyección oficiales vigentes en el país: 
+                    Esta herramienta ha sido desarrollada específicamente para cubrir las necesidades académicas de laboratorios de investigación y cartografía en Guatemala. Permite realizar conversiones directas e inversas de coordenadas espaciales entre los sistemas de proyección usados en el país: 
                     <strong class="text-slate-800">GTM (Guatemala Transversa Mercator)</strong>, <strong class="text-slate-800">UTM WGS84 (Zonas 15N y 16N)</strong>, <strong class="text-slate-800">UTM NAD27 (Zonas 15 y 16 sobre el elipsoide Clarke 1866)</strong>, y <strong class="text-slate-800">Geográficas WGS84</strong> (tanto en Grados Decimales como en Grados, Minutos y Segundos Sexagesimales).
                 </p>
             </article>
@@ -118,7 +118,7 @@
                         <tbody class="divide-y divide-slate-100 text-slate-600">
                             <tr>
                                 <td class="p-2.5 text-center font-bold text-slate-400 bg-slate-50/50">1</td>
-                                <td class="p-2.5 font-mono font-bold text-blue-900">c1_raw</td>
+                                <td class="p-2.5 font-mono font-bold text-blue-900">c1</td>
                                 <td class="p-2.5 text-slate-500">Numérico / Texto</td>
                                 <td class="p-2.5">
                                     <strong>Componente X / Longitud:</strong><br>
@@ -129,7 +129,7 @@
                             </tr>
                             <tr>
                                 <td class="p-2.5 text-center font-bold text-slate-400 bg-slate-50/50">2</td>
-                                <td class="p-2.5 font-mono font-bold text-blue-900">c2_raw</td>
+                                <td class="p-2.5 font-mono font-bold text-blue-900">c2</td>
                                 <td class="p-2.5 text-slate-500">Numérico / Texto</td>
                                 <td class="p-2.5">
                                     <strong>Componente Y / Latitud:</strong><br>
@@ -144,9 +144,9 @@
 
                 <!-- Ejemplo Visual del Archivo -->
                 <div class="mt-4">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Ejemplo visual del archivo .csv plano (Sin columna ID):</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Ejemplo visual del archivo .csv:</p>
                     <pre class="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-xs overflow-x-auto shadow-md border border-slate-800">
-c1_raw,c2_raw
+c1,c2
 501230.450,1620350.120
 489500.000,1585400.750
 515620.333,1645120.900</pre>
@@ -159,18 +159,18 @@ c1_raw,c2_raw
                     <i class="fa-solid fa-shield-halved text-blue-600 text-sm"></i> 5. Cobertura Geográfica Nacional y Filtros de Control
                 </h2>
                 <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-                    Para garantizar la integridad cartográfica de los proyectos y evitar errores de asignación, el backend geodésico implementa un módulo de validación espacial estricto que evalúa en tiempo real si las coordenadas pertenecen al territorio de la <strong class="text-slate-800">República de Guatemala</strong>.
+                    Para garantizar la integridad cartográfica de los proyectos y evitar errores de asignación, el backend geodésico implementa un módulo de validación espacial que evalúa en tiempo real si las coordenadas se encuentran en un área delimitada. 
                 </p>
 
                 <ul class="list-disc pl-5 mt-2 space-y-1 text-xs text-slate-600 font-mono bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <li>Latitud Mínima (Límite Sur): <span class="text-slate-900 font-bold">13.73° N</span></li>
-                    <li>Latitud Máxima (Límite Norte): <span class="text-slate-900 font-bold">17.82° N</span></li>
-                    <li>Longitud Mínima (Límite Este): <span class="text-slate-900 font-bold">-88.23° W</span></li>
-                    <li>Longitud Máxima (Límite Oeste): <span class="text-slate-900 font-bold">-92.23° W</span></li>
+                    <li>Latitud Mínima (Límite Sur): <span class="text-slate-900 font-bold">13.5° N</span></li>
+                    <li>Latitud Máxima (Límite Norte): <span class="text-slate-900 font-bold">18° N</span></li>
+                    <li>Longitud Mínima (Límite Este): <span class="text-slate-900 font-bold">-88° W</span></li>
+                    <li>Longitud Máxima (Límite Oeste): <span class="text-slate-900 font-bold">-92.5° W</span></li>
                 </ul>
 
                 <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-                    Dado que el meridiano 90°W divide los husos cartográficos del país, se aplican límites longitudinales de resguardo: la <strong class="text-slate-800">Zona 15N</strong> se valida entre los <strong class="text-slate-900">-92.5° y -89.5°</strong>, y la <strong class="text-slate-800">Zona 16N</strong> entre los <strong class="text-slate-900">-90.5° y -88.0°</strong>. Los puntos fuera de rango serán marcados como **RECHAZADOS**.
+                    Dado que el meridiano 90°W divide los husos cartográficos del país, se aplican límites longitudinales de resguardo para la Zona 15N y la Zona 16N. Los puntos fuera de rango serán marcados como **RECHAZADOS**.
                 </p>
             </article>
 
@@ -188,7 +188,7 @@ c1_raw,c2_raw
                     <i class="fa-solid fa-graduation-cap text-blue-400 mt-0.5 text-base"></i>
                     <div class="text-xs leading-relaxed text-slate-300">
                         <strong class="text-white block uppercase text-[10px] tracking-wider text-blue-400 font-mono mb-1">Aviso de Uso Estricto:</strong>
-                        Se recalca de manera explícita a todos los operadores, investigadores y estudiantes que este sitio web ha sido diseñado con un <span class="text-amber-300 font-semibold underline">propósito estrictamente pedagógico y de simulación académica</span>. Esta herramienta <span class="text-white font-bold">NO debe ser utilizada para la ejecución de trabajos profesionales, catastrales, de ingeniería de precisión, ni para firmas de planos legales</span> que involucren compromisos civiles o institucionales. Para fines profesionales oficiales, recurra siempre a los softwares de postprocesamiento certificados y validados por las autoridades cartográficas estatales.
+                        Se recalca de manera explícita a todos los usuarios, investigadores y estudiantes que este sitio web ha sido diseñado con un <span class="text-amber-300 font-semibold underline">propósito estrictamente pedagógico y de simulación académica</span>. Esta herramienta <span class="text-white font-bold">NO debe ser utilizada para la ejecución de trabajos profesionales, catastrales, de ingeniería de precisión, ni para firmas de planos legales</span> que involucren compromisos civiles o institucionales. Para fines profesionales oficiales, recurra siempre a los softwares de postprocesamiento certificados y validados por las autoridades.
                     </div>
                 </div>
             </article>
