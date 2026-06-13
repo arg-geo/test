@@ -726,11 +726,11 @@ async function ejecutarTransformacion() {
             container.innerHTML = `
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${hasta} Este (X)</span>
-                    <span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${parseFloat(out.c1).toFixed(3)} m</span>
+                    <span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${formatearMiles(parseFloat(out.c1).toFixed(3))} m</span>
                 </div>
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${hasta} Norte (Y)</span>
-                    <span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${parseFloat(out.c2).toFixed(3)} m</span>
+                    <span class="text-emerald-700 block font-mono font-bold text-lg mt-0.5">${formatearMiles(parseFloat(out.c2).toFixed(3))} m</span>
                 </div>`;
         }
 
