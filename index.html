@@ -378,7 +378,7 @@ function adaptarFormulario() {
                         if (pt.exito) {
                             colC1 = hasta.startsWith('WGS84') ? pt.c1.toFixed(8) : formatearMiles(pt.c1);
                             colC2 = hasta.startsWith('WGS84') ? pt.c2.toFixed(8) : formatearMiles(pt.c2);
-                            badge = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">ÉXITO</span>`;
+                            badge = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">ACEPTADO</span>`;
                         } else {
                             badge = `<span class="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded text-[10px]" title="${pt.error}">RECHAZADO</span>`;
                         }
